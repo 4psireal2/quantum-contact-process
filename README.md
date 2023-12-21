@@ -1,1 +1,1 @@
-# quantum-contact-process
+# 1D-quantum-contact-process
