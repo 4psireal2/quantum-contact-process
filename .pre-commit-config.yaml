@@ -1,0 +1,20 @@
+repos:
+  # we're managing our tools with poetry, no need to have pre-commit install them again
+  - repo: local
+    hooks:
+      # https://github.com/charliermarsh/ruff-pre-commit/blob/main/.pre-commit-hooks.yaml
+      - id: ruff
+        name: linter
+        language: system
+        entry: poetry run ruff check
+        args: [--force-exclude, --fix, --exit-non-zero-on-fix]
+        types_or: [python, pyi]
+        require_serial: true
+      # https://github.com/google/yapf/blob/main/.pre-commit-hooks.yaml
+      - id: yapf
+        name: code format 
+        language: system
+        entry: poetry run yapf
+        args: [-i]
+        types: [python]
+        require_serial: true
