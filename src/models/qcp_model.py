@@ -1,7 +1,7 @@
 """1D-QCP model"""
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Optional
 
 import numpy as np
@@ -27,11 +27,11 @@ class QCPModel:
     """
     Ref: https://link.aps.org/doi/10.1103/PhysRevLett.123.100604
     """
-    init_state: field(default_factory=List[Qobj])
-    omega: field(default_factory=float)
-    gamma: field(default_factory=float)
-    time: field(default_factory=np.array)
-    solver: field(default_factory=str)  # either "mesolve" or "mcsolve"
+    init_state: List[Qobj]
+    omega: float
+    gamma: float
+    time: np.array
+    solver: str  # either "mesolve" or "mcsolve"
     rhs_reuse: Optional[bool] = False  # set True for calculation of various initial state
     ntraj: Optional[int] = 250  # for mcsolve
     shared_op: [] = None
