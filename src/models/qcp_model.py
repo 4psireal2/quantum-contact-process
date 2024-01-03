@@ -1,4 +1,4 @@
-"""1D-QCP model"""
+"""Dynamics of 1D-QCP model"""
 
 import logging
 from dataclasses import dataclass
@@ -34,7 +34,8 @@ class QCPModel:
     solver: str  # either "mesolve" or "mcsolve"
     rhs_reuse: Optional[bool] = False  # set True for calculation of various initial state
     ntraj: Optional[int] = 250  # for mcsolve
-    shared_op: [] = None
+
+    # shared_op: [] = None
 
     def __post_init__(self):
         if not (self.solver == "mesolve" or self.solver == "mcsolve"):
@@ -54,7 +55,7 @@ class QCPModel:
             op_list[i] = destroy(2)
             destroy_list.append(tensor(op_list))
 
-        self.shared_op = num_list
+        # self.shared_op = num_list
 
         H = 0
         for i in range(L - 1):
@@ -86,32 +87,32 @@ class QCPModel:
         if self.solver == "mesolve":
             result = mesolve(H, state0, tlist=self.time, c_ops=dissipation_op, options=options, progress_bar=True)
 
-        if self.solver == "mcsolve":
+        if self.solver == "mcsolve":  # parallelization over all threads
             result = mcsolve(H, state0, tlist=self.time, c_ops=dissipation_op, options=options, progress_bar=True)
 
         return result
 
-    def n_t(self) -> np.ndarray:  # TODO: Is there a more efficient way? with e_ops?
-        n_t = np.zeros(len(self.time), dtype=float)
-        L = len(self.init_state)
-        states_t = self.time_evolution().states
+    # def n_t(self) -> np.ndarray:  # TODO: Is there a more efficient way? with e_ops?
+    #     n_t = np.zeros(len(self.time), dtype=float)
+    #     L = len(self.init_state)
+    #     states_t = self.time_evolution().states
 
-        if self.solver == "mesolve":
-            for t in range(len(self.time)):
-                no_of_particles = 0
-                for i in range(L):
-                    no_of_particles += np.trace(states_t[t].ptrace(i) * num(2)).real
+    #     if self.solver == "mesolve":
+    #         for t in range(len(self.time)):
+    #             no_of_particles = 0
+    #             for i in range(L):
+    #                 no_of_particles += np.trace(states_t[t].ptrace(i) * num(2)).real
 
-                n_t[t] += 1 / L * no_of_particles
+    #             n_t[t] += 1 / L * no_of_particles
 
-        if self.solver == "mcsolve":
-            for t in range(len(self.time)):
-                no_of_particles = np.zeros(self.ntraj, dtype=float)
-                for traj in range(self.ntraj):
-                    no_of_particles[traj] += (1 / L) * float(sum(np.sum(
-                        self.shared_op * states_t[traj][t])).real)  # 1st sum to get (L,0),
-                    # 2nd sum to get no. of alive cells in the chain
+    #     if self.solver == "mcsolve":
+    #         for t in range(len(self.time)):
+    #             no_of_particles = np.zeros(self.ntraj, dtype=float)
+    #             for traj in range(self.ntraj):
+    #                 no_of_particles[traj] += (1 / L) * float(sum(np.sum(
+    #                     self.shared_op * states_t[traj][t])).real)  # 1st sum to get (L,0),
+    #                 # 2nd sum to get no. of alive cells in the chain
 
-                n_t[t] += np.mean(no_of_particles)
+    #             n_t[t] += np.mean(no_of_particles)
 
-        return n_t
+    #     return n_t
