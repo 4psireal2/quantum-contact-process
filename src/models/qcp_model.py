@@ -68,7 +68,7 @@ class QCPModel:
 
         if self.solver == "mcsolve":
             for i in range(L):
-                dissipation_op.append(self.gamma * destroy_list[i])
+                dissipation_op.append(np.sqrt(self.gamma) * destroy_list[i])
 
         return TimePropagator(hermitian_op=H, non_hermitian_op=dissipation_op)
 

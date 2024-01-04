@@ -38,12 +38,12 @@ def n_t(time: np.array,
             num_list.append(tensor(op_list))
 
         for t in range(len(time)):
-            no_of_particles = np.zeros(ntraj, dtype=float)
+            particle_numbers_trajs = np.zeros(L)
             for traj in range(ntraj):
-                no_of_particles[traj] += (1 / L) * float(sum(np.sum(
-                    num_list * states_t[traj][t])).real)  # 1st sum to get (L,0),
-                # 2nd sum to get no. of alive cells in the chain
+                particle_numbers = states_t[traj][t].dag() * num_list * states_t[traj][t]
+                particle_numbers_trajs += np.array(
+                    [np.real(diagonal_element.full()[0, 0]) for diagonal_element in particle_numbers])
 
-            n_t[t] += np.mean(no_of_particles)
+            n_t[t] += np.sum(particle_numbers_trajs) / ntraj / L
 
     return n_t
