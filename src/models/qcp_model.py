@@ -6,11 +6,8 @@ from typing import List, Optional
 
 import numpy as np
 
-from qutip import (mcsolve, mesolve, tensor, qeye)
-from qutip.operators import num, sigmax, destroy
-from qutip.qobj import Qobj
-from qutip.solver import Options, Result
-from qutip.superoperator import lindblad_dissipator
+from qutip import (mcsolve, mesolve, tensor, qeye, num, sigmax, destroy, Qobj)
+from qutip.solver import Result
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -62,13 +59,9 @@ class QCPModel:
             H += self.omega * (sx_list[i] * num_list[i + 1] + num_list[i] * sx_list[i + 1])
 
         dissipation_op = []
-        if self.solver == "mesolve":
-            for i in range(L):
-                dissipation_op.append(self.gamma * lindblad_dissipator(a=destroy_list[i]))
 
-        if self.solver == "mcsolve":
-            for i in range(L):
-                dissipation_op.append(np.sqrt(self.gamma) * destroy_list[i])
+        for i in range(L):
+            dissipation_op.append(np.sqrt(self.gamma) * destroy_list[i])
 
         return TimePropagator(hermitian_op=H, non_hermitian_op=dissipation_op)
 
@@ -77,7 +70,7 @@ class QCPModel:
         state0 = psi0
 
         # setting options for solver
-        options = Options(rhs_reuse=self.rhs_reuse, store_states=True)
+        options = {'store_states': True, 'progress_bar': 'tqdm'}
 
         if self.solver == "mesolve":
             state0 = psi0 * psi0.dag()
@@ -85,10 +78,10 @@ class QCPModel:
         propagators = self.time_propagators()
         H, dissipation_op = propagators.hermitian_op, propagators.non_hermitian_op
         if self.solver == "mesolve":
-            result = mesolve(H, state0, tlist=self.time, c_ops=dissipation_op, options=options, progress_bar=True)
+            result = mesolve(H, state0, tlist=self.time, c_ops=dissipation_op, options=options)
 
         if self.solver == "mcsolve":  # parallelization over all threads
-            result = mcsolve(H, state0, tlist=self.time, c_ops=dissipation_op, options=options, progress_bar=True)
+            result = mcsolve(H, state0, tlist=self.time, c_ops=dissipation_op, options=options)
 
         return result
 

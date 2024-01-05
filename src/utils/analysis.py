@@ -6,8 +6,7 @@ import logging
 
 import numpy as np
 
-from qutip import tensor, qeye
-from qutip.operators import num
+from qutip import (num)
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -21,29 +20,29 @@ def n_t(time: np.array,
 
     n_t = np.zeros(len(time), dtype=float)
 
-    if solver == "mesolve":
-        for t in range(len(time)):
-            no_of_particles = 0
-            for i in range(L):
-                no_of_particles += np.trace(states_t[t].ptrace(i) * num(2)).real
-
-            n_t[t] += 1 / L * no_of_particles
-
-    if solver == "mcsolve":
-        num_list = []
+    # if solver == "mesolve":
+    for t in range(len(time)):
+        no_of_particles = 0
         for i in range(L):
-            op_list = [qeye(2)] * L
+            no_of_particles += np.trace(states_t[t].ptrace(i) * num(2)).real
 
-            op_list[i] = num(2)
-            num_list.append(tensor(op_list))
+        n_t[t] += 1 / L * no_of_particles
 
-        for t in range(len(time)):
-            particle_numbers_trajs = np.zeros(L)
-            for traj in range(ntraj):
-                particle_numbers = states_t[traj][t].dag() * num_list * states_t[traj][t]
-                particle_numbers_trajs += np.array(
-                    [np.real(diagonal_element.full()[0, 0]) for diagonal_element in particle_numbers])
+    # if solver == "mcsolve":
+    #     num_list = []
+    #     for i in range(L):
+    #         op_list = [qeye(2)] * L
 
-            n_t[t] += np.sum(particle_numbers_trajs) / ntraj / L
+    #         op_list[i] = num(2)
+    #         num_list.append(tensor(op_list))
+
+    #     for t in range(len(time)):
+    #         particle_numbers_trajs = np.zeros(L)
+    #         for traj in range(ntraj):
+    #             particle_numbers = states_t[traj][t].dag() * num_list * states_t[traj][t]
+    #             particle_numbers_trajs += np.array(
+    #                 [np.real(diagonal_element.full()[0, 0]) for diagonal_element in particle_numbers])
+
+    #         n_t[t] += np.sum(particle_numbers_trajs) / ntraj / L
 
     return n_t

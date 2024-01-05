@@ -8,8 +8,7 @@ import logging
 
 import matplotlib.pyplot as plt
 import numpy as np
-from qutip import tensor, qeye
-from qutip.operators import num
+from qutip import (tensor, qeye, num)
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
