@@ -1,14 +1,24 @@
 """
 Ref: https://www.phys.ens.fr/~dalibard/publi3/osa_93.pdf
 """
+import logging
+import os
 
 import numpy as np
 
-from tenpy.algorithms import algorithm
 from tenpy.models.lattice import Chain
 from tenpy.models.model import (CouplingModel, MPOModel, NearestNeighborModel)
 from tenpy.networks.mps import MPS
 from tenpy.networks.site import SpinHalfSite
+
+current_script_directory = os.path.dirname(os.path.abspath(__file__))
+log_file_name = current_script_directory + '/time_evolution_tenpy.log'
+logger = logging.getLogger(__name__)
+logging.basicConfig(filename=log_file_name, level=logging.INFO)
+
+handler = logging.FileHandler(log_file_name, mode='w')  # 'w' mode creates a new file
+handler.setLevel(logging.INFO)
+logging.getLogger().addHandler(handler)
 
 
 class QCPModel(CouplingModel, MPOModel, NearestNeighborModel):
@@ -37,6 +47,8 @@ class QCPModel(CouplingModel, MPOModel, NearestNeighborModel):
         CouplingModel.__init__(self, oned_lattice)
         for i in range(L - 1):
             self.add_coupling_term(strength=omega, i=i, j=i + 1, op_i='sigmax', op_j='number_op', plus_hc=False)
+            self.add_coupling_term(strength=omega, i=i, j=i + 1, op_i='number_op', op_j='sigmax', plus_hc=False)
+
         for i in range(L):
             self.add_onsite_term(strength=-gamma * 1j / 2, i=i, op='number_op')
 
@@ -47,43 +59,52 @@ class QCPModel(CouplingModel, MPOModel, NearestNeighborModel):
         NearestNeighborModel.__init__(self, oned_lattice, self.calc_H_bond())
 
 
-def wfmc(psi0: np.ndarray, final_time: float, model_params: dict, TEBD_params: dict, ntraj: int,
-         engine: algorithm) -> str:
+def wfmc(psi0: np.ndarray, model_params: dict, solver_params: dict) -> list:
     """
     Implementation of part 2 in Section 2B
     """
 
     # dynamical variables
-    dt = TEBD_params.get('dt', 1)
-    n_time_steps = int(final_time // dt)
+    dt = solver_params.get('dt', 1)
+    n_time_steps = solver_params.get('N_steps', 1)
 
     qcp_model = QCPModel(model_params)
 
     psi = MPS.from_product_state(sites=qcp_model.lat.mps_sites(), p_state=psi0)
-    psi_t = psi.copy()
-    trajs = [[] for _ in range(ntraj)]
-    for i in range(ntraj):
+    logging.info(f"Norm of initial state: {psi.norm}")
+    trajs = [[] for _ in range(solver_params['ntraj'])]
+
+    for i in range(solver_params['ntraj']):
+        psi_t = psi.copy()
+
         for _ in range(n_time_steps):
-            dp = dt * psi_t.psi_t.expectation_value('number_op')
+            dp = dt * psi_t.expectation_value('number_op')  # an array
             dp_l = dp / np.sum(dp)
 
             epsilon = np.random.uniform()
 
             # usual time evolution - Eq.11
             if np.sum(dp) < epsilon:
-                engine = engine(psi_t, qcp_model, TEBD_params)
-                engine.run()
-                psi_t.norm = psi_t.norm / (1 - np.sum(dp))**(1 / 2)  #TODO: How do TENPY ppl do renormalization
+                # psi_t_placeholder = psi_t.copy()
+                solver = solver_params['solver'](psi_t, qcp_model, solver_params)
+                solver.run()
+                # logging.info(f"Check evolution: {psi_t_placeholder == psi_t}")
+                logging.info(f"Norm of state after 1 time step evolution without jump: {psi_t.norm}")
+                logging.info(f"Norm diff: {np.abs(psi_t.norm - (1 - np.sum(dp)**(1/2)))}")
+
+                psi_t.norm = psi_t.norm / (1 - np.sum(dp))**(1 / 2)
+                logging.info(f"Norm of state after normalization: {psi_t.norm}")
+
             else:  # Eq.12
                 for site_l in range(model_params['L']):
                     if np.random.uniform() < dp_l[site_l]:
+                        logging.info(f"Norm of state before 1 quantum jump: {psi_t.norm}")
                         psi_t.apply_local_op(i=site_l, op='annihilation_op', renormalize=False)
+                        logging.info(f"Norm of state after 1 quantum jump: {psi_t.norm}")
+
                         psi_t.norm = psi_t.norm * (dp_l[site_l] / dt)**(1 / 2)
+                        logging.info(f"Norm of state after normalization: {psi_t.norm}")
 
         trajs[i].append(psi_t)
 
-
-chain = QCPModel({'omega': 6, 'gamma': 1, 'L': 10, 'bc_MPS': 'finite', 'explicit_plus_hc': False})
-
-basis_0 = np.array([1, 0])
-basis_1 = np.array([0, 1])
+    return trajs

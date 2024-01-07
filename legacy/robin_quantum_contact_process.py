@@ -7,25 +7,21 @@ url=https://tenpy.readthedocs.io/
 import logging
 import numpy as np
 
-import sys
-sys.path.append("C:/Users/robin/Desktop/quantum_contact_process")
-
-from own_TeNPy import QRBasedTEBDEngine, SVDBasedTEBDEngine, normaliziation
+from robin_own_TeNPy import QRBasedTEBDEngine, SVDBasedTEBDEngine, normaliziation
 from tenpy.models.model import MPOModel, NearestNeighborModel, CouplingModel
 from tenpy.models.lattice import Chain
 
 from tenpy.networks.mps import MPS
 from tenpy.networks.mpo import MPO
-from tenpy.networks.site import kron
 from tenpy.networks.site import SpinHalfSite
 
 from numpy.random import default_rng
 
+import os
 
-
-
+current_script_directory = os.path.dirname(os.path.abspath(__file__))
 logger = logging.getLogger(__name__)
-
+logging.basicConfig(filename=current_script_directory + '/time_evolution_tenpy_robin.log', level=logging.INFO)
 rng = default_rng()
 
 
@@ -39,6 +35,7 @@ class initial_state:
     of the method are explaind here:
     https://tenpy.johannes-hauschild.de/viewtopic.php?t=553
     """
+
     def down_state(L):
         # print("Create state |11...1>")
         state = []
@@ -57,7 +54,7 @@ class initial_state:
         # print("Create state |00..1..0>")
         state = []
         for i in range(L):
-            if i == L//2:
+            if i == L // 2:
                 state.append('down')
             else:
                 state.append('up')
@@ -73,12 +70,10 @@ class initial_state:
         lat = Chain(L, site, bc_MPS='finite')
         Sp, Id = site.Sp, site.Id
         W_m = [[Id, Sp], [None, Id]]
-        grids = np.array([W_m]*L)
-        initial = MPS.from_product_state(
-            lat.mps_sites(), initial_state.down_state(L))
+        grids = np.array([W_m] * L)
+        initial = MPS.from_product_state(lat.mps_sites(), initial_state.down_state(L))
         H = MPO.from_grids(lat.mps_sites(), grids, IdL=0, IdR=-1)
-        options = {'trunc_params': {'chi_max': 1500, 'svd_min': 1.e-14},
-                   'compression_method': 'SVD'}
+        options = {'trunc_params': {'chi_max': 1500, 'svd_min': 1.e-14}, 'compression_method': 'SVD'}
         H.apply(initial, options)
         for i in range(L):
             initial.apply_local_op(i, 'Sigmax')
@@ -112,26 +107,21 @@ class QCPModel(CouplingModel, NearestNeighborModel, MPOModel):
 
         # initialize the physical site and add onsite operators to it
         site = SpinHalfSite(conserve='None')
-        site.add_op('oo', op_o)                     # |0><0|
-        site.add_op('omega_x', op_omega_x)          # σ_x
-        site.add_op('omega_plus', op_omega_plus)    # σ_+
+        site.add_op('oo', op_o)  # |0><0|
+        site.add_op('omega_x', op_omega_x)  # σ_x
+        site.add_op('omega_plus', op_omega_plus)  # σ_+
         site.add_op('omega_minus', op_omega_minus)  # σ_-
-        site.add_op('number', op_number)            # |1><1| = n = σ_+ σ_-
+        site.add_op('number', op_number)  # |1><1| = n = σ_+ σ_-
 
         # define lattice
-        lat = Chain(L, site,
-                    bc='open',
-                    bc_MPS=bc_MPS
-                    )
+        lat = Chain(L, site, bc='open', bc_MPS=bc_MPS)
         # initialize CouplingModel
         CouplingModel.__init__(self, lat)
-        for i in range(L-1):
-            self.add_coupling_term(
-                Ω, i, i+1, 'omega_x', 'number', plus_hc=False)
-            self.add_coupling_term(
-                Ω, i, i+1, 'number', 'omega_x', plus_hc=False)
+        for i in range(L - 1):
+            self.add_coupling_term(Ω, i, i + 1, 'omega_x', 'number', plus_hc=False)
+            self.add_coupling_term(Ω, i, i + 1, 'number', 'omega_x', plus_hc=False)
         for i in range(L):
-            self.add_onsite_term(-1j/2. * γ, i, 'number')
+            self.add_onsite_term(-1j / 2. * γ, i, 'number')
         # initialize H_MPO
 
         MPOModel.__init__(self, lat, self.calc_H_MPO())
@@ -147,6 +137,7 @@ class wave_function_monte_carlo():
         "Monte Carlo wave-function method in quantum optics,"
         J. Opt. Soc. Am. B 10, 524-538 (1993)
     """
+
     def execute(psi_t_initial, t_final, parameter, Ntraj=1, engine=QRBasedTEBDEngine):
         """
         execute the wave-function Monte-Carlo Method of an initial state till t_final
@@ -197,26 +188,30 @@ class wave_function_monte_carlo():
             for j in range(0, t_final):
                 # calculate jump probability for each site i
                 # dp = dt * <ψ(t)|σ_+ σ_- ψ(t)>
-                dp = np.real(dt*psi_t.expectation_value('number'))
+                dp = np.real(dt * psi_t.expectation_value('number'))
 
                 # contruct random list for each site i
                 r_arr = [rng.random() for _ in range(psi_t.L)]
 
                 # calculate time evolution |ψ(t+dt)> with TEBD algorithm
+                logging.info(f"Norm of state before evolution: {psi_t.norm}")
+
                 eng = engine(psi_t, M, parameter.get('tebd_params'))
                 eng.run()
+                logging.info(f"Norm of state after 1 time step evolution without jump: {psi_t.norm}")
 
                 # check for each site if jump prob. is bigger than random
                 # number, if so apply σ_+ on site i -> |ψ>_i = σ_+|ψ>_i
                 for i in range(0, psi_t.L):
                     if dp[i] > r_arr[i]:
-                        psi_t.apply_local_op(
-                           i, 'omega_plus', unitary=False, renormalize=True)
+                        psi_t.apply_local_op(i, 'omega_plus', unitary=False, renormalize=True)
 
                 # renormalize the resulting state
-                for i in range(psi_t.L-1):
+                for i in range(psi_t.L - 1):
                     normaliziation.normalize_site(psi_t, i, {'chi_max': 1200, 'svd_min': 1.e-12})
-                psi_t.norm = psi_t.overlap(psi_t)/(psi_t.norm**2)
+                psi_t.norm = psi_t.overlap(psi_t) / (psi_t.norm**2)
+                logging.info(f"Norm of state after renormalization: {psi_t.norm}")
+
                 # calculate <N(t)> = ∑_i <ψ|σ_+ σ_- ψ> = ∑_i <ψ|n ψ>_i
                 state_list.append(np.sum(psi_t.expectation_value('number')))
 
@@ -224,25 +219,35 @@ class wave_function_monte_carlo():
             res.append(state_list)
 
         # calculate 1/Ntraj * ∑_k <N(t)>_k
-        return np.sum(res, axis=0)/len(res)
+        return np.sum(res, axis=0) / len(res)
 
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-    parameter = {'model_params': {
+    parameter = {
+        'model_params': {
             'bc_MPS': 'finite',
             'L': 34,
             'omega': 6,
             'gamma': 1,
             'boundary_conditions': 'open'
-        }, 'tebd_params': {
-                'N_steps': 2,
-                'dt': 0.05,
-                'order': 2,
-                'trunc_params': {'chi_max': 350, 'svd_min': 1.e-12}
-                }
+        },
+        'tebd_params': {
+            'N_steps': 2,
+            'dt': 0.05,
+            'order': 2,
+            'trunc_params': {
+                'chi_max': 350,
+                'svd_min': 1.e-12
+            }
         }
+    }
 
     data_res = wave_function_monte_carlo.execute(initial_state.single_state(parameter.get('model_params').get('L')),
-                                                 t_final=20, parameter=parameter, Ntraj=1, engine=QRBasedTEBDEngine)
-    print(plt.plot(data_res))
+                                                 t_final=5,
+                                                 parameter=parameter,
+                                                 Ntraj=1,
+                                                 engine=SVDBasedTEBDEngine)
+    plt.figure()
+    plt.plot(data_res, 'o')
+    plt.show()
