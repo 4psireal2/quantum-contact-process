@@ -72,6 +72,7 @@ def wfmc(psi0: np.ndarray, model_params: dict, solver_params: dict) -> list:
 
     psi = MPS.from_product_state(sites=qcp_model.lat.mps_sites(), p_state=psi0)
     logging.info(f"Norm of initial state: {psi.norm}")
+
     trajs = [[] for _ in range(solver_params['ntraj'])]
 
     for i in range(solver_params['ntraj']):
@@ -85,25 +86,24 @@ def wfmc(psi0: np.ndarray, model_params: dict, solver_params: dict) -> list:
 
             # usual time evolution - Eq.11
             if np.sum(dp) < epsilon:
-                # psi_t_placeholder = psi_t.copy()
                 solver = solver_params['solver'](psi_t, qcp_model, solver_params)
                 solver.run()
-                # logging.info(f"Check evolution: {psi_t_placeholder == psi_t}")
                 logging.info(f"Norm of state after 1 time step evolution without jump: {psi_t.norm}")
                 logging.info(f"Norm diff: {np.abs(psi_t.norm - (1 - np.sum(dp)**(1/2)))}")
 
                 psi_t.norm = psi_t.norm / (1 - np.sum(dp))**(1 / 2)
                 logging.info(f"Norm of state after normalization: {psi_t.norm}")
 
-            else:  # Eq.12
+            else:  # Eq.12 - Only 1 jump
                 for site_l in range(model_params['L']):
                     if np.random.uniform() < dp_l[site_l]:
                         logging.info(f"Norm of state before 1 quantum jump: {psi_t.norm}")
                         psi_t.apply_local_op(i=site_l, op='annihilation_op', renormalize=False)
-                        logging.info(f"Norm of state after 1 quantum jump: {psi_t.norm}")
+                        break
 
-                        psi_t.norm = psi_t.norm * (dp_l[site_l] / dt)**(1 / 2)
-                        logging.info(f"Norm of state after normalization: {psi_t.norm}")
+                logging.info(f"Norm of state after 1 quantum jump: {psi_t.norm}")
+                psi_t.norm = psi_t.norm * (dp_l[site_l] / dt)**(1 / 2)
+                logging.info(f"Norm of state after normalization: {psi_t.norm}")
 
         trajs[i].append(psi_t)
 
