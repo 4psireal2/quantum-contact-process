@@ -82,10 +82,8 @@ def wfmc(psi0: np.ndarray, model_params: dict, solver_params: dict) -> list:
             dp = dt * psi_t.expectation_value('number_op')  # an array
             dp_l = dp / np.sum(dp)
 
-            epsilon = np.random.uniform()
-
             # usual time evolution - Eq.11
-            if np.sum(dp) < epsilon:
+            if np.sum(dp) < np.random.uniform():  # epsilon
                 solver = solver_params['solver'](psi_t, qcp_model, solver_params)
                 solver.run()
                 logging.info(f"Norm of state after 1 time step evolution without jump: {psi_t.norm}")

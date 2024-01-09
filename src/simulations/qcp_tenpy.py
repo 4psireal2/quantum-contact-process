@@ -1,6 +1,6 @@
 import numpy as np
 
-from qcp_mcsolve_tenpy import wfmc
+from models.qcp_model_tenpy import wfmc
 
 from tenpy.algorithms import (tebd)
 
