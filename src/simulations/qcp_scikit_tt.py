@@ -1,7 +1,7 @@
 import numpy as np
 from scikit_tt.tensor_train import TT
 import scikit_tt.tensor_train as tt
-from scikit_tt.solvers.ode import (hod)
+from scikit_tt.solvers.ode import hod
 import matplotlib.pyplot as plt
 
 # parameters
@@ -9,8 +9,8 @@ L = 51
 GAMMA = 1
 OMEGA = 6
 step_size = 1  # How to choose this?
-number_of_steps = 15
-max_rank = 200  # TODO: Chi?
+number_of_steps = 25
+max_rank = 200  # TODO: Chi? Bond dimension?
 
 # arrays
 identity = np.eye(2)
@@ -82,6 +82,8 @@ for i in range(len(solution)):
 # plot result
 for i in range(len(solution)):
     probs[i, :] = 1 / np.linalg.norm(probs[i, :], ord=1) * probs[i, :]
+
 plt.figure()
 plt.imshow(probs)
-plt.show()
+plt.tight_layout()
+plt.savefig("density_plot_L_51_Chi_200_critical.png")

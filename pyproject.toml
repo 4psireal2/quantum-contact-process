@@ -1,0 +1,47 @@
+[tool.poetry]
+name = "qcp-1d"
+version = "0.1.0"
+description = ""
+authors = []
+readme = "README.md"
+
+[[tool.poetry.source]]
+name = "conda-forge"
+url = "https://anaconda.org/conda-forge"
+priority = "primary"
+
+
+[[tool.poetry.source]]
+name = "scikit-tt"
+url = "https://github.com/PGelss/scikit_tt.git"
+priority = "supplemental"
+
+[tool.poetry.dependencies]
+python = "~3.11"
+numpy = "~1.26"
+scipy = "~1.11"
+Cython = "~3.0"
+setuptools = "~69.0"
+tqdm = "^4.66"
+conda-lock = "^2.5.1"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.0.267"
+pre-commit = "^3.3.1"
+yapf = "^0.32.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+# disable line-length lint since it is handled by yapf
+ignore = ["E501"]
+line-length = 118
+# pyflakes, pycodestyle, isort
+#select = ["F", "E", "W", "I001"]
+
+[tool.yapf]
+based_on_style = "pep8"
+column_limit = 120
+allow_split_before_dict_value = false
