@@ -1,14 +1,15 @@
 # quantum-contact-process-1D
-TODO:
+## TODO:
 - [] (*TenPy*) 2 time evolution algorithms: SingleSiteTDVP and TEBD (SVDBasedTEBDEngine + QRBasedTEBDEngine). Test both
-- [] (*TenPy*) `overlap` statt `norm`
-- [] (*TenPy*) WFMC implementation for higher order 
-- [] (*scikit_tt*) check SLIM representation
+- [] (*TenPy*) `overlap` instead of `norm` for checking norm loss
+- [] (*TenPy*) WFMC implementation for [higher order](https://www.sciencedirect.com/science/article/pii/S0010465512000835?via%3Dihub)
+- [] (*scikit_tt*) check SLIM representation, DMRG, TEBD, TDVP
 - [] (*scikit_tt*) compute steady-state solution, check Linblad eigenspectrum
 - [] (*scikit_tt*) run jobs on HPC, combining with CUDA?
 - [] (*QuTip*) check what can be computed for dynamical simulation
-- [] (*theory*) Check whether the decay rates are smaller than the minium energy splitting in the system Hamiltonian -> approximations for the [validity](https://qutip.org/docs/latest/guide/dynamics/dynamics-master.html) of Lindblad Master equation 
-- [] (*technicality*) Putting code also at group's repo `itp0.physik.tu-berlin.de`? (Check [wiki](https://www3.itp.tu-berlin.de/dokuwiki/agweimer:start))
+- [] (*theory*) Check whether the decay rates are smaller than the minium energy splitting in the system Hamiltonian -> approximations for the [validity](https://qutip.org/docs/latest/guide/dynamics/dynamics-master.html) of Lindblad Master equation
+- [] (*theory*) Check Jen's [approach](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.116.237201), LDPO?
+- [] (*technicality*) Putting code also at group's repo `itp0.physik.tu-berlin.de/home/agweimer`? (Check [wiki](https://www3.itp.tu-berlin.de/dokuwiki/agweimer:start))
 
 
 ## Technical details 
