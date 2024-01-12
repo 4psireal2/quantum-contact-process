@@ -1,15 +1,11 @@
 # 1D-quantum-contact-process
 TODO:
-- [x] Simulate QCP-1D in QuTiP using WFMC, ODE solver
-- [x] Consult QuTiP community
-- [x] Replicate Fig. 2c in https://link.aps.org/doi/10.1103/PhysRevLett.123.100604
-- [x] Include logging to see change in norm
-- [] 2 time evolution algorithms: SingleSiteTDVP, TEBD (QRBasedTEBDEngine). Test both
-- [] Check out Adam's and BDF method -> What exactly is going on in `mesolve`?
-- [] steady-state solution
-- [] update `n(t)` for v5.0.0a2
-- [] Check whether the decay rates are smaller than the minium energy splitting in the system Hamiltonian -> approximations for the validity of Lindblad Master equation (https://qutip.org/docs/latest/guide/dynamics/dynamics-master.html)
-- [] overlap statt norm
+- [] (*TenPy*) 2 time evolution algorithms: SingleSiteTDVP and TEBD (SVDBasedTEBDEngine + QRBasedTEBDEngine). Test both
+- [] (*TenPy*) `overlap` statt `norm`
+- [] (*scikit_tt*) check SLIM representation
+- [] (*scikit_tt*) compute steady-state solution
+- [] (*QuTip*) check what can be computed for dynamical simulation
+- [] (*theory*) Check whether the decay rates are smaller than the minium energy splitting in the system Hamiltonian -> approximations for the validity of Lindblad Master equation (https://qutip.org/docs/latest/guide/dynamics/dynamics-master.html)
 
 
 ## Technical details 
@@ -20,7 +16,7 @@ Required tools: `conda`, `conda-lock`, `poetry`
 ```
 conda-lock install --name YOURENV linux-64.conda.lock
 conda activate YOURENV
-poetry install
+make init
 ```
 
 ### Do this happily ever after (Update the environment)
