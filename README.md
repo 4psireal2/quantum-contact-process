@@ -1,11 +1,14 @@
-# 1D-quantum-contact-process
+# quantum-contact-process-1D
 TODO:
 - [] (*TenPy*) 2 time evolution algorithms: SingleSiteTDVP and TEBD (SVDBasedTEBDEngine + QRBasedTEBDEngine). Test both
 - [] (*TenPy*) `overlap` statt `norm`
+- [] (*TenPy*) WFMC implementation for higher order 
 - [] (*scikit_tt*) check SLIM representation
-- [] (*scikit_tt*) compute steady-state solution
+- [] (*scikit_tt*) compute steady-state solution, check Linblad eigenspectrum
+- [] (*scikit_tt*) run jobs on HPC, combining with CUDA?
 - [] (*QuTip*) check what can be computed for dynamical simulation
-- [] (*theory*) Check whether the decay rates are smaller than the minium energy splitting in the system Hamiltonian -> approximations for the validity of Lindblad Master equation (https://qutip.org/docs/latest/guide/dynamics/dynamics-master.html)
+- [] (*theory*) Check whether the decay rates are smaller than the minium energy splitting in the system Hamiltonian -> approximations for the [validity](https://qutip.org/docs/latest/guide/dynamics/dynamics-master.html) of Lindblad Master equation 
+- [] (*technicality*) Putting code also at group's repo `itp0.physik.tu-berlin.de`? (Check [wiki](https://www3.itp.tu-berlin.de/dokuwiki/agweimer:start))
 
 
 ## Technical details 
