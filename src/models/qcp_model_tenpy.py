@@ -66,42 +66,56 @@ def wfmc(psi0: np.ndarray, model_params: dict, solver_params: dict) -> list:
 
     # dynamical variables
     dt = solver_params.get('dt', 1)
-    n_time_steps = solver_params.get('N_steps', 1)
+    n_time_steps = solver_params.get('n_time_steps', 1)
 
     qcp_model = QCPModel(model_params)
 
     psi = MPS.from_product_state(sites=qcp_model.lat.mps_sites(), p_state=psi0)
-    logging.info(f"Norm of initial state: {psi.norm}")
+    logger.info(f"Norm of initial state: {psi.norm=}")
 
     trajs = [[] for _ in range(solver_params['ntraj'])]
 
     for i in range(solver_params['ntraj']):
+        logger.info(f"Traj {i}")
         psi_t = psi.copy()
 
         for _ in range(n_time_steps):
-            dp = dt * psi_t.expectation_value('number_op')  # an array
-            dp_l = dp / np.sum(dp)
 
+            dp = dt * psi_t.expectation_value('number_op')  # an array
+            logger.info(f"{np.sum(dp)=:.6f}")  # should be << 1
+            dp_l = dp / np.sum(dp)  # probability
             # usual time evolution - Eq.11
             if np.sum(dp) < np.random.uniform():  # epsilon
+                logger.info(f"Norm before evolution: {psi_t.norm=:.6f}")
+
                 solver = solver_params['solver'](psi_t, qcp_model, solver_params)
                 solver.run()
-                logging.info(f"Norm of state after 1 time step evolution without jump: {psi_t.norm}")
-                logging.info(f"Norm diff: {np.abs(psi_t.norm - (1 - np.sum(dp)**(1/2)))}")
+                logger.info(f"Norm of state after 1 time step evolution without jump: {psi_t.norm=:.6f}")
 
                 psi_t.norm = psi_t.norm / (1 - np.sum(dp))**(1 / 2)
-                logging.info(f"Norm of state after normalization: {psi_t.norm}")
+                logger.info(f"Norm of state after normalization: {psi_t.norm=:.6f}")
 
             else:  # Eq.12 - Only 1 jump
-                for site_l in range(model_params['L']):
-                    if np.random.uniform() < dp_l[site_l]:
-                        logging.info(f"Norm of state before 1 quantum jump: {psi_t.norm}")
-                        psi_t.apply_local_op(i=site_l, op='annihilation_op', renormalize=False)
-                        break
+                logger.info(f"Norm of state before 1 quantum jump: {psi_t.norm=:.6f}")
 
-                logging.info(f"Norm of state after 1 quantum jump: {psi_t.norm}")
-                psi_t.norm = psi_t.norm * (dp_l[site_l] / dt)**(1 / 2)
-                logging.info(f"Norm of state after normalization: {psi_t.norm}")
+                sort_indices = np.argsort(dp_l)
+                cum_prob = np.cumsum(dp_l[sort_indices])
+                rand_num = np.random.uniform()
+                for site_l in range(model_params['L']):
+                    index_site = np.where(sort_indices == site_l)[0][0]
+                    if index_site == 0:
+                        range_site = [0, cum_prob[0]]
+                    else:
+                        range_site = [cum_prob[index_site - 1], cum_prob[index_site]]
+
+                    if range_site[0] <= rand_num < range_site[1]:
+                        psi_t.apply_local_op(i=site_l, op='annihilation_op', renormalize=False)
+                        logger.info(f"Norm of state after 1 quantum jump: {psi_t.norm=:.6f}")
+
+                        psi_t.norm = psi_t.norm / (dp[site_l] / dt)**(1 / 2)
+                        logger.info(f"Norm of state after normalization: {psi_t.norm=:.6f}")
+
+                        break
 
         trajs[i].append(psi_t)
 

@@ -7,4 +7,3 @@ dependencies:
   - conda-lock
   - poetry
   - python=3.11*
-  - physics-tenpy=0.10.0

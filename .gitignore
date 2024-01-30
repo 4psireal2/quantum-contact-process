@@ -1,4 +1,5 @@
 *.pyc
 /legacy
 /tests
+/tutorials
 /scikit_tt
