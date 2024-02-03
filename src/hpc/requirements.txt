@@ -1,0 +1,6 @@
+numpy
+scipy
+Cython
+matplotlib
+git+https://github.com/PGelss/scikit_tt.git
+git+https://github.com/tenpy/tenpy.git
