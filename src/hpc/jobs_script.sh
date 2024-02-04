@@ -13,10 +13,10 @@
 #SBATCH --nodes=1
 
 # number of job units
-# SBATCH --ntasks=1
+#SBATCH --ntasks=2
 
 # number of CPUs per task
-# SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=16
 
 # memory per CPU in MB (see also --mem) 
 #SBATCH --mem-per-cpu=2048
@@ -31,9 +31,8 @@
 #SBATCH --error=logFiles/simulationName_%A_%a.err
 
 # job arrays
-# SBATCH --array=0-10
-#SBATCH --array=0-150
-# SBATCH --array=0,2-4,5-9
+#SBATCH --array=0-1
+
 
 # select partition
 #SBATCH --partition=main
@@ -59,4 +58,4 @@ source $HOME/tensor/bin/activate
 
 # launch Python script
 # python3 pythonScript.py $SLURM_ARRAY_TASK_ID
-python3 qcp_hpc_scikit_tt --bond-dimension 200 300
+python3 qcp_hpc_scikit_tt --bond-dimension 200 300 $SLURM_ARRAY_TASK_ID

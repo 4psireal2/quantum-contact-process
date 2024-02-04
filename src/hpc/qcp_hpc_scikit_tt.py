@@ -67,36 +67,38 @@ op = TT(op_cores)
 def main():
     # parse environment variables
     parser = argparse.ArgumentParser()
-    parser.add_argument('--bond-dimension', type=list, nargs='+')
+    parser.add_argument('slurmarrayid', type=int)
     args = parser.parse_args()
 
+    bond_dimensions = (200, 300)
+
     # simulate quantum contact process
-    for bond_d in args:
-        psi = tt.unit(L * [4], inds=25 * [0] + [3] + 25 * [0])
-        solution = hod(op, psi, step_size=step_size, number_of_steps=number_of_steps, normalize=2, max_rank=bond_d)
+    bond_dim = bond_dimensions(args.slurmarrayid)
+    psi = tt.unit(L * [4], inds=25 * [0] + [3] + 25 * [0])
+    solution = hod(op, psi, step_size=step_size, number_of_steps=number_of_steps, normalize=2, max_rank=bond_dim)
 
-        # compute active-site density
-        probs = np.zeros([len(solution), L])
-        for i in range(len(solution)):
-            for j in range(L):
-                sol = solution[i].copy()
-                for k in range(L):
-                    if k != j:
-                        sol.cores[k] = (sol.cores[k][:, 0, :, :] + sol.cores[k][:, 3, :, :]).reshape(
-                            [sol.ranks[k], 1, 1, sol.ranks[k + 1]])
-                    else:
-                        sol.cores[k] = sol.cores[k][:, 3, :, :].reshape([sol.ranks[k], 1, 1, sol.ranks[k + 1]])
-                    sol.row_dims[k] = 1
-                probs[i, j] = np.abs(sol.matricize()[0])
+    # compute active-site density
+    probs = np.zeros([len(solution), L])
+    for i in range(len(solution)):
+        for j in range(L):
+            sol = solution[i].copy()
+            for k in range(L):
+                if k != j:
+                    sol.cores[k] = (sol.cores[k][:, 0, :, :] + sol.cores[k][:, 3, :, :]).reshape(
+                        [sol.ranks[k], 1, 1, sol.ranks[k + 1]])
+                else:
+                    sol.cores[k] = sol.cores[k][:, 3, :, :].reshape([sol.ranks[k], 1, 1, sol.ranks[k + 1]])
+                sol.row_dims[k] = 1
+            probs[i, j] = np.abs(sol.matricize()[0])
 
-        # plot result
-        for i in range(len(solution)):
-            probs[i, :] = 1 / np.linalg.norm(probs[i, :], ord=1) * probs[i, :]
+    # plot result
+    for i in range(len(solution)):
+        probs[i, :] = 1 / np.linalg.norm(probs[i, :], ord=1) * probs[i, :]
 
-        plt.figure()
-        plt.imshow(probs)
-        plt.tight_layout()
-        plt.savefig(f"density_plot_L_51_Chi_{bond_d}_critical.png")
+    plt.figure()
+    plt.imshow(probs)
+    plt.tight_layout()
+    plt.savefig(f"density_plot_L_51_Chi_{bond_dim}_critical.png")
 
 
 if __name__ == "__main__":

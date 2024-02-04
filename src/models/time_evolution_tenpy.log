@@ -1,0 +1,113 @@
+Norm of initial state: psi.norm=1.0
+Traj 0
+np.sum(dp)=0.005000
+Norm before evolution: psi_t.norm=1.000000
+TEBDEngine: subconfig 'trunc_params'=Config(<2 options>, 'trunc_params')
+TEBDEngine: reading 'dt'=0.005
+TEBDEngine: reading 'N_steps'=1
+TEBDEngine: reading 'preserve_norm'=False
+Calculate U for {'order': 2, 'delta_t': 0.005, 'type_evo': 'real', 'E_offset': None, 'tau': 0.005}
+trunc_params: reading 'chi_max'=350
+trunc_params: reading 'svd_min'=1e-12
+--> time=0.005, max(chi)=4, max(S)=0.00000, avg DeltaS=1.3248e-06, since last update: 0.0s
+Norm of state after 1 time step evolution without jump: psi_t.norm=0.997502
+Norm of state after normalization: psi_t.norm=1.000005
+np.sum(dp)=0.005009
+Norm before evolution: psi_t.norm=1.000005
+TEBDEngine: subconfig 'trunc_params'=Config(<5 options>, 'trunc_params')
+TEBDEngine: reading 'start_time'=0.0
+TEBDEngine: reading 'start_trunc_err'=TruncationError()
+TEBDEngine: reading 'dt'=0.005
+TEBDEngine: reading 'N_steps'=1
+TEBDEngine: reading 'preserve_norm'=False
+TEBDEngine: reading 'order'=2
+TEBDEngine: reading 'E_offset'=None
+Calculate U for {'order': 2, 'delta_t': 0.005, 'type_evo': 'real', 'E_offset': None, 'tau': 0.005}
+--> time=0.005, max(chi)=5, max(S)=0.00004, avg DeltaS=1.6184e-05, since last update: 0.0s
+Norm of state after 1 time step evolution without jump: psi_t.norm=0.997497
+Norm of state after normalization: psi_t.norm=1.000005
+np.sum(dp)=0.005036
+Norm before evolution: psi_t.norm=1.000005
+TEBDEngine: subconfig 'trunc_params'=Config(<5 options>, 'trunc_params')
+TEBDEngine: reading 'start_time'=0.0
+TEBDEngine: reading 'start_trunc_err'=TruncationError()
+TEBDEngine: reading 'dt'=0.005
+TEBDEngine: reading 'N_steps'=1
+TEBDEngine: reading 'preserve_norm'=False
+TEBDEngine: reading 'order'=2
+TEBDEngine: reading 'E_offset'=None
+Calculate U for {'order': 2, 'delta_t': 0.005, 'type_evo': 'real', 'E_offset': None, 'tau': 0.005}
+--> time=0.005, max(chi)=6, max(S)=0.00019, avg DeltaS=5.9984e-05, since last update: 0.1s
+Norm of state after 1 time step evolution without jump: psi_t.norm=0.997480
+Norm of state after normalization: psi_t.norm=1.000001
+np.sum(dp)=0.005080
+Norm before evolution: psi_t.norm=1.000001
+TEBDEngine: subconfig 'trunc_params'=Config(<5 options>, 'trunc_params')
+TEBDEngine: reading 'start_time'=0.0
+TEBDEngine: reading 'start_trunc_err'=TruncationError()
+TEBDEngine: reading 'dt'=0.005
+TEBDEngine: reading 'N_steps'=1
+TEBDEngine: reading 'preserve_norm'=False
+TEBDEngine: reading 'order'=2
+TEBDEngine: reading 'E_offset'=None
+Calculate U for {'order': 2, 'delta_t': 0.005, 'type_evo': 'real', 'E_offset': None, 'tau': 0.005}
+--> time=0.005, max(chi)=7, max(S)=0.00055, avg DeltaS=1.4188e-04, since last update: 0.1s
+Norm of state after 1 time step evolution without jump: psi_t.norm=0.997449
+Norm of state after normalization: psi_t.norm=0.999993
+np.sum(dp)=0.005142
+Norm before evolution: psi_t.norm=0.999993
+TEBDEngine: subconfig 'trunc_params'=Config(<5 options>, 'trunc_params')
+TEBDEngine: reading 'start_time'=0.0
+TEBDEngine: reading 'start_trunc_err'=TruncationError()
+TEBDEngine: reading 'dt'=0.005
+TEBDEngine: reading 'N_steps'=1
+TEBDEngine: reading 'preserve_norm'=False
+TEBDEngine: reading 'order'=2
+TEBDEngine: reading 'E_offset'=None
+Calculate U for {'order': 2, 'delta_t': 0.005, 'type_evo': 'real', 'E_offset': None, 'tau': 0.005}
+--> time=0.005, max(chi)=7, max(S)=0.00122, avg DeltaS=2.6679e-04, since last update: 0.0s
+Norm of state after 1 time step evolution without jump: psi_t.norm=0.997406
+Norm of state after normalization: psi_t.norm=0.999980
+np.sum(dp)=0.005220
+Norm before evolution: psi_t.norm=0.999980
+TEBDEngine: subconfig 'trunc_params'=Config(<5 options>, 'trunc_params')
+TEBDEngine: reading 'start_time'=0.0
+TEBDEngine: reading 'start_trunc_err'=TruncationError()
+TEBDEngine: reading 'dt'=0.005
+TEBDEngine: reading 'N_steps'=1
+TEBDEngine: reading 'preserve_norm'=False
+TEBDEngine: reading 'order'=2
+TEBDEngine: reading 'E_offset'=None
+Calculate U for {'order': 2, 'delta_t': 0.005, 'type_evo': 'real', 'E_offset': None, 'tau': 0.005}
+--> time=0.005, max(chi)=8, max(S)=0.00232, avg DeltaS=4.3649e-04, since last update: 0.0s
+Norm of state after 1 time step evolution without jump: psi_t.norm=0.997351
+Norm of state after normalization: psi_t.norm=0.999964
+i_t.norm=0.999993
+INFO:models.qcp_model_tenpy:np.sum(dp)=0.005142
+INFO:models.qcp_model_tenpy:Norm before evolution: psi_t.norm=0.999993
+INFO:tenpy.tools.params:TEBDEngine: subconfig 'trunc_params'=Config(<5 options>, 'trunc_params')
+INFO:tenpy.tools.params:TEBDEngine: reading 'start_time'=0.0
+INFO:tenpy.tools.params:TEBDEngine: reading 'start_trunc_err'=TruncationError()
+INFO:tenpy.tools.params:TEBDEngine: reading 'dt'=0.005
+INFO:tenpy.tools.params:TEBDEngine: reading 'N_steps'=1
+INFO:tenpy.tools.params:TEBDEngine: reading 'preserve_norm'=False
+INFO:tenpy.tools.params:TEBDEngine: reading 'order'=2
+INFO:tenpy.tools.params:TEBDEngine: reading 'E_offset'=None
+INFO:tenpy.algorithms.tebd:Calculate U for {'order': 2, 'delta_t': 0.005, 'type_evo': 'real', 'E_offset': None, 'tau': 0.005}
+INFO:tenpy.algorithms.algorithm:--> time=0.005, max(chi)=7, max(S)=0.00122, avg DeltaS=2.6679e-04, since last update: 0.0s
+INFO:models.qcp_model_tenpy:Norm of state after 1 time step evolution without jump: psi_t.norm=0.997406
+INFO:models.qcp_model_tenpy:Norm of state after normalization: psi_t.norm=0.999980
+INFO:models.qcp_model_tenpy:np.sum(dp)=0.005220
+INFO:models.qcp_model_tenpy:Norm before evolution: psi_t.norm=0.999980
+INFO:tenpy.tools.params:TEBDEngine: subconfig 'trunc_params'=Config(<5 options>, 'trunc_params')
+INFO:tenpy.tools.params:TEBDEngine: reading 'start_time'=0.0
+INFO:tenpy.tools.params:TEBDEngine: reading 'start_trunc_err'=TruncationError()
+INFO:tenpy.tools.params:TEBDEngine: reading 'dt'=0.005
+INFO:tenpy.tools.params:TEBDEngine: reading 'N_steps'=1
+INFO:tenpy.tools.params:TEBDEngine: reading 'preserve_norm'=False
+INFO:tenpy.tools.params:TEBDEngine: reading 'order'=2
+INFO:tenpy.tools.params:TEBDEngine: reading 'E_offset'=None
+INFO:tenpy.algorithms.tebd:Calculate U for {'order': 2, 'delta_t': 0.005, 'type_evo': 'real', 'E_offset': None, 'tau': 0.005}
+INFO:tenpy.algorithms.algorithm:--> time=0.005, max(chi)=8, max(S)=0.00232, avg DeltaS=4.3649e-04, since last update: 0.0s
+INFO:models.qcp_model_tenpy:Norm of state after 1 time step evolution without jump: psi_t.norm=0.997351
+INFO:models.qcp_model_tenpy:Norm of state after normalization: psi_t.norm=0.999964
