@@ -1,14 +1,15 @@
 import numpy as np
 from scikit_tt.tensor_train import (TT)
 import scikit_tt.tensor_train as tt
+from scikit_tt.solvers.ode import hod
 
 # parameters
 L = 51
 GAMMA = 1
 OMEGA = 6
 step_size = 1  # How to choose this?
-number_of_steps = 25
-max_rank = 200  # TODO: Chi? Bond dimension?
+number_of_steps = 10
+max_rank = 200  # Bond dimension?
 
 # arrays
 identity = np.eye(2)
@@ -17,7 +18,7 @@ annihilation_op = np.array([[0, 1], [0, 0]])
 number_op = np.array([[0, 0], [0, 1]])
 
 # core components
-S = 1j * GAMMA * (np.kron(annihilation_op, annihilation_op) - 0.5 * (np.kron(number_op, number_op)))
+S = 1j * GAMMA * (np.kron(annihilation_op, annihilation_op.T) - 0.5 * (np.kron(number_op, number_op)))
 L_1 = OMEGA * np.kron(sigmax, identity)
 L_2 = OMEGA * np.kron(number_op, identity)
 L_3 = -OMEGA * np.kron(identity, sigmax)
@@ -61,7 +62,7 @@ op = TT(op_cores)
 
 # simulate quantum contact process
 psi = tt.unit(L * [4], inds=25 * [0] + [3] + 25 * [0])
-# solution = hod(op, psi, step_size=step_size, number_of_steps=number_of_steps, normalize=2, max_rank=max_rank)
+solution = hod(op, psi, step_size=step_size, number_of_steps=number_of_steps, normalize=2, max_rank=max_rank)
 
 # compute active-site density
 # probs = np.zeros([len(solution), L])
@@ -83,5 +84,6 @@ psi = tt.unit(L * [4], inds=25 * [0] + [3] + 25 * [0])
 
 # plt.figure()
 # plt.imshow(probs)
+# plt.colorbar()
 # plt.tight_layout()
 # plt.savefig("density_plot_L_51_Chi_200_critical.png")

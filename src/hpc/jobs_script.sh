@@ -12,8 +12,8 @@
 # ensure that all cores are on one machine
 #SBATCH --nodes=1
 
-# number of job units
-#SBATCH --ntasks=2
+# number of tasks/job unit
+#SBATCH --ntasks=1
 
 # number of CPUs per task
 #SBATCH --cpus-per-task=16
@@ -22,13 +22,13 @@
 #SBATCH --mem-per-cpu=2048
 
 # runtime in HH:MM:SS format (DAYS-HH:MM:SS format)
-#SBATCH --time=3-00:00:00
+#SBATCH --time=0-03:00:00
 
 # file to which standard output will be written (%A --> jobID, %a --> arrayID)
-#SBATCH --output=logFiles/simulationName_%A_%a.out
+#SBATCH --output=logFiles/simulationName_%A_%a_$(date +\%d\%m\%y\%H\%M).out
 
 # file to which standard errors will be written (%A --> jobID, %a --> arrayID)
-#SBATCH --error=logFiles/simulationName_%A_%a.err
+#SBATCH --error=logFiles/simulationName_%A_%a_$(date +\%d\%m\%y\%H\%M).err
 
 # job arrays
 #SBATCH --array=0-1
@@ -50,12 +50,11 @@ export VECLIB_MAXIMUM_THREADS=$SLURM_CPUS_PER_TASK
 export NUMEXPR_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
 # load Python module
-module load python/3.11.*
+module load python/3.11.7
 
 # create and activate virtualenv
 python3 setup_venv.py
-source $HOME/tensor/bin/activate
+ 
 
 # launch Python script
-# python3 pythonScript.py $SLURM_ARRAY_TASK_ID
-python3 qcp_hpc_scikit_tt --bond-dimension 200 300 $SLURM_ARRAY_TASK_ID
+$HOME/tensor/bin/python3 qcp_hpc_scikit_tt.py $SLURM_ARRAY_TASK_ID

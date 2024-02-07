@@ -21,7 +21,7 @@ annihilation_op = np.array([[0, 1], [0, 0]])
 number_op = np.array([[0, 0], [0, 1]])
 
 # core components
-S = 1j * GAMMA * (np.kron(annihilation_op, annihilation_op) - 0.5 * (np.kron(number_op, number_op)))
+S = 1j * GAMMA * (np.kron(annihilation_op, annihilation_op.T) - 0.5 * (np.kron(number_op, number_op)))
 L_1 = OMEGA * np.kron(sigmax, identity)
 L_2 = OMEGA * np.kron(number_op, identity)
 L_3 = -OMEGA * np.kron(identity, sigmax)
@@ -92,12 +92,12 @@ def main():
             probs[i, j] = np.abs(sol.matricize()[0])
 
     # plot result
-    for i in range(len(solution)):
-        probs[i, :] = 1 / np.linalg.norm(probs[i, :], ord=1) * probs[i, :]
+    probs /= np.linalg.norm(probs, ord=1, axis=1).reshape((4, 1))
 
     plt.figure()
     plt.imshow(probs)
     plt.tight_layout()
+    plt.colorbar()
     plt.savefig(f"density_plot_L_51_Chi_{bond_dim}_critical.png")
 
 
