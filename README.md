@@ -3,9 +3,8 @@
 - [] (*TenPy*) 2 time evolution algorithms: SingleSiteTDVP and TEBD (SVDBasedTEBDEngine + QRBasedTEBDEngine). Test both
 - [] (*TenPy*) WFMC implementation for [higher order](https://www.sciencedirect.com/science/article/pii/S0010465512000835?via%3Dihub)
 - [] (*TenPy*) Reproduce density plot in Hendrik's paper
-- [] (*scikit_tt*) check SLIM representation, DMRG, TEBD, TDVP
-- [] (*scikit_tt*) compute steady-state solution, check Linblad eigenspectrum
-- [] (*scikit_tt*) run jobs on HPC, combining with CUDA?
+- [] (*scikit_tt*) TEBD, TDVP
+- [] (*scikit_tt*) ALS gave error for eigenspectrum computation for L=15
 - [] (*QuTip*) check what can be computed for dynamical simulation
 - [] (*theory*) Check whether the decay rates are smaller than the minium energy splitting in the system Hamiltonian -> approximations for the [validity](https://qutip.org/docs/latest/guide/dynamics/dynamics-master.html) of Lindblad Master equation
 - [] (*theory*) Check Jen's [approach](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.116.237201), LDPO?
