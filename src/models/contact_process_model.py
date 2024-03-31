@@ -2,7 +2,7 @@ import numpy as np
 from scikit_tt.tensor_train import TT
 
 
-def create_mpo(gamma: float, omega: float, L: int) -> TT:
+def construct_lindblad(gamma: float, omega: float, L: int) -> TT:
     """
     Construct MPO for the Lindbladian of the contact process
     """
@@ -57,3 +57,38 @@ def create_mpo(gamma: float, omega: float, L: int) -> TT:
     op_cores[-1][5, :, :, 0] = S
 
     return TT(op_cores)
+
+
+def construct_basis_mps(L: int, basis: list[np.ndarray]) -> TT:
+    mps_cores = [None] * L
+
+    for i in range(L):
+        mps_cores[i] = np.zeros([1, 2, 2, 1], dtype=complex)
+        mps_cores[i] = basis[i].reshape(1, 2, 2, 1)
+
+    return TT(mps_cores)
+
+
+def construct_num_op(L: int) -> TT:
+    # construct core
+    op_cores = [None] * L
+
+    for i in range(L):
+        number_op = np.kron(np.array([[0, 0], [0, 1]]), np.eye(2)) + np.kron(np.eye(2), np.array([[0, 0], [0, 1]]))
+        op_cores[i] = np.zeros([2, 2, 2, 2], dtype=complex)
+        op_cores[i] = number_op.reshape(2, 2, 2, 2)
+
+    return TT(op_cores)
+
+
+def compute_site_expVal(mps: TT, mpo: TT) -> np.ndarray:
+    assert mps.order == mpo.order
+    exp_vals = np.zeros(mps.order)
+
+    mps_dag = mps.transpose(conjugate=True)
+    for i in range(mps.order):
+        left = np.tensordot(mps_dag.cores[i], mpo.cores[0], axes=([1, 2], [0, 1]))
+        right = np.tensordot(left, mps.cores[i], axes=([2, 3], [1, 2]))
+        exp_vals[i] = float(right.squeeze())
+
+    return exp_vals
