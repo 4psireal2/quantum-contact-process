@@ -1,8 +1,8 @@
 import numpy as np
-from scikit_tt.tensor_train import TT
+import scikit_tt.tensor_train as tt
 
 
-def construct_lindblad(gamma: float, omega: float, L: int) -> TT:
+def construct_lindblad(gamma: float, omega: float, L: int) -> tt.TT:
     """
     Construct MPO for the Lindbladian of the contact process
     """
@@ -56,20 +56,31 @@ def construct_lindblad(gamma: float, omega: float, L: int) -> TT:
     op_cores[-1][4, :, :, 0] = M_4
     op_cores[-1][5, :, :, 0] = S
 
-    return TT(op_cores)
+    return tt.TT(op_cores)
 
 
-def construct_basis_mps(L: int, basis: list[np.ndarray]) -> TT:
+def construct_basis_mps(L: int, basis: list[np.ndarray]) -> tt.TT:
     mps_cores = [None] * L
 
     for i in range(L):
         mps_cores[i] = np.zeros([1, 2, 2, 1], dtype=complex)
         mps_cores[i] = basis[i].reshape(1, 2, 2, 1)
 
-    return TT(mps_cores)
+    return tt.TT(mps_cores)
 
 
-def construct_num_op(L: int) -> TT:
+def construct_uniform_mps(L: int, bond_dim: int) -> tt.TT:
+    mps = tt.uniform(L * [4], ranks=bond_dim)
+
+    mps.cores[0] = mps.cores[0].reshape(1, 2, 2, bond_dim)
+    for i in range(1, L - 1):
+        mps.cores[i] = mps.cores[i].reshape(bond_dim, 2, 2, bond_dim)
+    mps.cores[-1] = mps.cores[-1].reshape(bond_dim, 2, 2, 1)
+
+    return mps
+
+
+def construct_num_op(L: int) -> tt.TT:
     # construct core
     op_cores = [None] * L
 
@@ -78,17 +89,18 @@ def construct_num_op(L: int) -> TT:
         op_cores[i] = np.zeros([2, 2, 2, 2], dtype=complex)
         op_cores[i] = number_op.reshape(2, 2, 2, 2)
 
-    return TT(op_cores)
+    return tt.TT(op_cores)
 
 
-def compute_site_expVal(mps: TT, mpo: TT) -> np.ndarray:
+def compute_site_expVal(mps: tt.TT, mpo: tt.TT) -> np.ndarray:
     assert mps.order == mpo.order
     exp_vals = np.zeros(mps.order)
 
     mps_dag = mps.transpose(conjugate=True)
     for i in range(mps.order):
-        left = np.tensordot(mps_dag.cores[i], mpo.cores[0], axes=([1, 2], [0, 1]))
-        right = np.tensordot(left, mps.cores[i], axes=([2, 3], [1, 2]))
+        left = np.tensordot(mps_dag.cores[i], mpo.cores[i], axes=([1, 2], [0, 1]))
+        left = np.transpose(left, (0, 2, 3, 1))
+        right = np.tensordot(left, mps.cores[i], axes=([0, 1, 2, 3], [0, 1, 2, 3]))
         exp_vals[i] = float(right.squeeze())
 
     return exp_vals

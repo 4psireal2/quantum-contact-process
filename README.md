@@ -8,10 +8,16 @@
 - [] (*QuTip*) check what can be computed for dynamical simulation
 - [] (*theory*) Check whether the decay rates are smaller than the minium energy splitting in the system Hamiltonian -> approximations for the [validity](https://qutip.org/docs/latest/guide/dynamics/dynamics-master.html) of Lindblad Master equation
 - [] (*theory*) Check Jen's [approach](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.116.237201), LDPO?
+- [] (*theory) Dynamics of entanglement spectrum
 - [] (*technicality*) Putting code also at group's repo `itp0.physik.tu-berlin.de/home/agweimer`? (Check [wiki](https://www3.itp.tu-berlin.de/dokuwiki/agweimer:start))
+- [] (*artist*) draw tensor network diagrams hehe
 
 ## TODO (simulations):
-- Correlation functions
+- Finite system: Half-chain correlation, purity of state
+- Thermodynamic limits for critical exponents-> VUMPS?
+- OBSERVATION: convergence for E doesn't require large bond dimensions, but for other observables alr!
+- ISSUES: for finite system, ALS doesn't work for large systemn
+
 
 
 ## Technical details 
