@@ -98,9 +98,11 @@ def compute_site_expVal(mps: tt.TT, mpo: tt.TT) -> np.ndarray:
 
     mps_dag = mps.transpose(conjugate=True)
     for i in range(mps.order):
+        tensor_norm = np.tensordot(mps_dag.cores[i], mps.cores[i], axes=([0, 1, 2, 3], [0, 1, 2, 3]))
+        tensor_norm = float(tensor_norm.squeeze())
         left = np.tensordot(mps_dag.cores[i], mpo.cores[i], axes=([1, 2], [0, 1]))
         left = np.transpose(left, (0, 2, 3, 1))
         right = np.tensordot(left, mps.cores[i], axes=([0, 1, 2, 3], [0, 1, 2, 3]))
-        exp_vals[i] = float(right.squeeze())
+        exp_vals[i] = float(right.squeeze()) / tensor_norm
 
     return exp_vals

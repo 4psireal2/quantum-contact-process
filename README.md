@@ -13,12 +13,9 @@
 - [] (*artist*) draw tensor network diagrams hehe
 
 ## TODO (simulations):
-- Finite system: Half-chain correlation, purity of state
+- Finite system: Half-chain correlation, purity of state, check for ||Ax - \lambda x|| < eps
 - Thermodynamic limits for critical exponents-> VUMPS?
 - OBSERVATION: convergence for E doesn't require large bond dimensions, but for other observables alr!
-- ISSUES: for finite system, ALS doesn't work for large systemn
-
-
 
 ## Technical details 
 Required tools: `conda`, `conda-lock`, `poetry`
@@ -50,7 +47,6 @@ poetry lock --no-update)
 ```
 ssh  username@sheldon.physik.fu-berlin.de
 ```
-
 
 #### *Bugs that are not mine ... So try at your own peril anything in []*
 - `conda-lock` somehow doesn't work for all platforms [`conda-lock -f environment.yml` or `conda-lock --lockfile conda-lock.yml`] (Something about mamba and conda that don't quite go well together ... see [issue](https://github.com/conda/conda-libmamba-solver/issues/418))
