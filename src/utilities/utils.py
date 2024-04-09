@@ -21,15 +21,20 @@ def orthogonalize_mps(mps: tt.TT, ortho_center: int) -> tt.TT:
     orthog_mps = deepcopy(mps)
     orthog_mps = orthog_mps.ortho_left(start_index=0, end_index=ortho_center - 1)
     orthog_mps = orthog_mps.ortho_right(start_index=mps.order - 1, end_index=ortho_center + 1)
-    orthog_mps = canonicalize_mps(orthog_mps)
 
     return orthog_mps
 
 
 def orthonormalize_mps(mps: tt.TT, ortho_center: int = 0) -> tt.TT:
+    """
+    Returns:
+    - orthon_mps: tensor train in vectorized form in Tensorkit's notation
+    """
 
     orthon_mps = orthogonalize_mps(mps, ortho_center)
     orthon_mps_dag = orthon_mps.transpose(conjugate=True)
+    orthon_mps = canonicalize_mps(orthon_mps)
+    orthon_mps_dag = canonicalize_mps(orthon_mps_dag)
 
     norm = np.tensordot(orthon_mps.cores[ortho_center],
                         orthon_mps_dag.cores[ortho_center],
@@ -43,13 +48,9 @@ def canonicalize_mps(mps: tt.TT) -> tt.TT:
     """
     Bring mps into a vectorized form in Tensorkit's notation
     """
-    first, _, _, last = mps.cores[0].shape
-    mps.cores[0] = mps.cores[0].reshape(first, 2, 2, last)
-    for k in range(1, mps.order - 1):
+    for k in range(mps.order):
         first, _, _, last = mps.cores[k].shape
         mps.cores[k] = mps.cores[k].reshape(first, 2, 2, last)
-    first, _, _, last = mps.cores[-1].shape
-    mps.cores[-1] = mps.cores[-1].reshape(first, 2, 2, last)
 
     return mps
 

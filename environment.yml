@@ -1,9 +1,0 @@
-name: qcp-1d
-channels:
-  - conda-forge
-  - defaults
-dependencies:
-  - pip
-  - conda-lock
-  - poetry
-  - python=3.11*

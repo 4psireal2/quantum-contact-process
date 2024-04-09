@@ -23,12 +23,11 @@ priority = "primary"
 python = "~3.11"
 numpy = "~1.26"
 scipy = "~1.11"
-Cython = "~3.0"
 setuptools = "~69.0"
 tqdm = "^4.66"
-conda-lock = "^2.5.1"
 matplotlib = "^3.8.2"
 toml = "^0.10.2"
+pytest = "^8.1.1"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.0.267"
