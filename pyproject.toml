@@ -11,13 +11,9 @@ url = "https://anaconda.org/conda-forge"
 priority = "primary"
 
 [[tool.poetry.source]]
-name = "scikit-tt"
-url = "https://github.com/PGelss/scikit_tt.git"
-priority = "supplemental"
-
-[[tool.poetry.source]]
 name = "PyPI"
 priority = "primary"
+
 
 [tool.poetry.dependencies]
 python = "~3.11"
@@ -28,6 +24,8 @@ tqdm = "^4.66"
 matplotlib = "^3.8.2"
 toml = "^0.10.2"
 pytest = "^8.1.1"
+scikit_tt = {git = "https://github.com/PGelss/scikit_tt.git#1f681e1", branch="master"}
+
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.0.267"

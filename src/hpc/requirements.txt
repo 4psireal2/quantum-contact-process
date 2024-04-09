@@ -1,5 +1,4 @@
 numpy==1.26.3
 scipy==1.11.4
-Cython==3.0.8
 matplotlib==3.8.2
 git+https://github.com/PGelss/scikit_tt.git@1f681e1

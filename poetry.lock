@@ -715,6 +715,25 @@ files = [
 ]
 
 [[package]]
+name = "scikit_tt"
+version = "1.0"
+description = ""
+optional = false
+python-versions = "*"
+files = []
+develop = false
+
+[package.dependencies]
+numpy = ">=1.14"
+scipy = ">=1"
+
+[package.source]
+type = "git"
+url = "https://github.com/PGelss/scikit_tt.git#1f681e1"
+reference = "master"
+resolved_reference = "e9a418df43c980f543e0860f9d4a68ae84b82df5"
+
+[[package]]
 name = "scipy"
 version = "1.11.4"
 description = "Fundamental algorithms for scientific computing in Python"
@@ -848,4 +867,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.11"
-content-hash = "e6975c3afeab035ac628c70035cc474d2e3f8d60e1e2176cb1037abb247b9c4f"
+content-hash = "098e8ea61ba26409cbde03544844c5e61420962052f5d016dd8c6fefb72ae505"

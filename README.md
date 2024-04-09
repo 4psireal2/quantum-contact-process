@@ -43,6 +43,3 @@ poetry lock --no-update
 ```
 ssh  username@sheldon.physik.fu-berlin.de
 ```
-
-#### *Bugs that are not mine ... So try at your own peril anything in []*
-- `conda-lock` somehow doesn't work for all platforms [`conda-lock -f environment.yml` or `conda-lock --lockfile conda-lock.yml`] (Something about mamba and conda that don't quite go well together ... see [issue](https://github.com/conda/conda-libmamba-solver/issues/418))
