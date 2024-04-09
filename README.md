@@ -16,6 +16,7 @@
 - Finite system: Half-chain correlation, purity of state, check for ||Ax - \lambda x|| < eps
 - Thermodynamic limits for critical exponents-> VUMPS?
 - OBSERVATION: convergence for E doesn't require large bond dimensions, but for other observables alr!
+- scikit-tt norm needs to be squared
 
 ## Technical details 
 Required tools: `conda`, `conda-lock`, `poetry`

@@ -6,7 +6,8 @@ from copy import deepcopy
 import scikit_tt.tensor_train as tt
 from scikit_tt.solvers.evp import als
 
-from src.models.contact_process_model import (compute_site_expVal, construct_lindblad, construct_num_op)
+from src.models.contact_process_model import construct_lindblad, construct_num_op
+from src.utilities.utils import canonicalize_mps, compute_site_expVal
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -36,13 +37,13 @@ for i, OMEGA in enumerate(OMEGAS):
 
         mps = tt.ones(row_dims=L * [4], col_dims=L * [1], ranks=bond_dim)
         mps = mps.ortho()
-        mps = (1 / mps.norm()) * mps
+        mps = (1 / mps.norm()**2) * mps
         time1 = time.time()
         eigenvalues, eigentensors, _ = als(lindblad_hermitian, mps, number_ev=2, repeats=10, conv_eps=conv_eps, sigma=0)
         time2 = time.time()
         logger.info(f"Elapsed time: {time2 - time1} seconds")
         logger.info(f"Ground state energy per site E = {eigenvalues/L}")
-        logger.info(f"Norm of ground state: {eigentensors[0].norm()}")
+        logger.info(f"Norm of ground state: {eigentensors[0].norm()**2}")
 
         if bond_dim == bond_dims[-1]:
             logger.info("Compute spectral gap of L†L for largest bond dimension")
@@ -51,13 +52,7 @@ for i, OMEGA in enumerate(OMEGAS):
         logger.info("Reshape MPS of ground state")
         gs_mps = eigentensors[0]
 
-        first, _, _, last = gs_mps.cores[0].shape
-        gs_mps.cores[0] = gs_mps.cores[0].reshape(first, 2, 2, last)
-        for k in range(1, L - 1):
-            first, _, _, last = gs_mps.cores[k].shape
-            gs_mps.cores[k] = gs_mps.cores[k].reshape(first, 2, 2, last)
-        first, _, _, last = gs_mps.cores[-1].shape
-        gs_mps.cores[-1] = gs_mps.cores[-1].reshape(first, 2, 2, last)
+        gs_mps = canonicalize_mps(gs_mps)
 
         logger.info("Compute expectation value")
 
@@ -72,13 +67,8 @@ for i, OMEGA in enumerate(OMEGAS):
         n_s[j, i] = np.mean(particle_nums)
         logger.info(f"Mean particle number = {n_s[j, i]}")
 
-        # logger.info("Compute staggered particle numbers")  #XXX: Does it even make sense?
-        # signs = np.array([-1 if i % 2 == 0 else 1 for i in range(L)])
-        # stag_particle_nums = np.sqrt(np.mean(signs * particle_nums**2))
-        # n_stag_s[j, i] = stag_particle_nums
-        # logger.info(f"Mean staggered particle number = {n_stag_s[j, i]}")
-
         logger.info("Compute purity of state")
+        purity = gs_mps.norm()**2
         logger.info("Compute density-density correlation")
 
 # # plot spectral gap
