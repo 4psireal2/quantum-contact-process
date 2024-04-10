@@ -28,7 +28,7 @@ def orthogonalize_mps(mps: tt.TT, ortho_center: int) -> tt.TT:
 def orthonormalize_mps(mps: tt.TT, ortho_center: int = 0) -> tt.TT:
     """
     Returns:
-    - orthon_mps: tensor train in vectorized form in Tensorkit's notation
+    - orthon_mps: canonicalized orthonormalized mps
     """
 
     orthon_mps = orthogonalize_mps(mps, ortho_center)
@@ -56,6 +56,11 @@ def canonicalize_mps(mps: tt.TT) -> tt.TT:
 
 
 def compute_site_expVal(mps: tt.TT, mpo: tt.TT) -> np.ndarray:
+    """
+    Args:
+    - mps: canonicalized mps
+    - mpo: cores that have dimension (2,2,2,2)
+    """
     assert mps.order == mpo.order
     exp_vals = np.zeros(mps.order)
 
@@ -74,30 +79,44 @@ def compute_site_expVal(mps: tt.TT, mpo: tt.TT) -> np.ndarray:
     return exp_vals
 
 
-def compute_purity(mps: tt.TT) -> float:  #BUG: a bit buggy...
+def compute_norm(mps: tt.TT) -> float:
     """
-    Compute norm = purity = Tr(ρ^2)
+    Compute norm = Tr(ρ.ρ^†)
+    Args:
+    - mps: canonicalized mps
     """
     mps_dag = mps.transpose(conjugate=True)
 
-    left_boundary = np.array([1], ndmin=2)
+    left_boundary = np.ones((1, 1))
 
     for i in range(mps_dag.order):
-        first, _, _, last = mps.cores[i].shape
         contraction = np.tensordot(mps.cores[i], mps_dag.cores[i], axes=([1, 2], [1, 2]))
-        if i == 0 or i == (mps.order - 1):
-            contraction = contraction.reshape(first, first, last, last)
-        else:
-            contraction = contraction.reshape(last, last, last, last)
+        left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1], [0, 2]))
 
-        left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1], [0, 1]))
+    right_boundary = np.ones((1, 1))
+    return np.trace(left_boundary @ right_boundary)
 
-    right_boundary = np.array([1], ndmin=2)
+
+def compute_purity(mps: tt.TT) -> float:
+    """
+    Compute purity = Tr(ρ.ρ)
+    Args:
+    - mps: canonicalized mps
+    """
+    left_boundary = np.ones((1, 1))
+
+    for i in range(mps.order):
+        contraction = np.tensordot(mps.cores[i], mps.cores[i], axes=([1, 2], [2, 1]))
+        left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1], [0, 2]))
+
+    right_boundary = np.ones((1, 1))
     return np.trace(left_boundary @ right_boundary)
 
 
 def compute_correlation(mps: tt.TT, mpo: tt.TT, r: tt.TT) -> float:
     """
+    Compute C(r) =  <O_{L/2} . O_{L/2+r}> - <O_{L/2}><O_{L/2+r}>
+
     Args:
     - mps: canonicalized mps
     """
@@ -125,6 +144,8 @@ def compute_correlation(mps: tt.TT, mpo: tt.TT, r: tt.TT) -> float:
             contraction = np.tensordot(contraction, mps_dag.cores[i], axes=([1, 2], [1, 2]))
 
         left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1], [0, 2]))
+        if r == 0:
+            left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1], [0, 2]))
 
     mean_product = np.trace(left_boundary @ right_boundary)
 

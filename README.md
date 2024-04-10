@@ -13,11 +13,11 @@
 - [] (*artist*) draw tensor network diagrams hehe
 
 ## TODO (simulations):
-- Finite system: Half-chain correlation, purity of state, check for ||Ax - \lambda x|| < eps
+- Finite system: check for ||Ax - \lambda x|| < eps -> smallest required ranks
 - Thermodynamic limits for critical exponents-> VUMPS?
 - OBSERVATION: convergence for E doesn't require large bond dimensions, but for other observables alr!
 - scikit-tt norm needs to be squared
-- Write tests for my functions
+- Automate testing pipeline
 
 ## Technical details 
 Required tools: `poetry`
