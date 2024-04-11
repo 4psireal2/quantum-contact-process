@@ -49,12 +49,31 @@ export MKL_NUM_THREADS=$SLURM_CPUS_PER_TASK
 export VECLIB_MAXIMUM_THREADS=$SLURM_CPUS_PER_TASK
 export NUMEXPR_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
-# load Python module
-module load python/3.11.7
+log_memory_cpu_usage() {
+        while true; do
+                echo -n "$(date +'%Y-%m-%d %H:%M:%S') " >> usage_log.txt
+                # only include the used and total memory
+                free -h | awk '/^Mem:/ { print $3 "/" $2 }' >> usage_log.txt
+                top -bn1 | awk '/^%Cpu/ { print "CPU: " $2 " us, " $4 " sy" }' >> usage_log.txt
+                sleep 900
+        done
+}
+
+log_time() {
+        local start=$(date +%s)
+        $@
+        local end=$(date +%s)
+        local runtime=$((end - start))
+        echo "$(date +'%Y-%m-%d %H:%M:%S') Time taken for $@: ${runtime}s" >> time_log.txt
+}
 
 # create and activate virtualenv
-python3 setup_venv.py
+python3 -m venv /scratch/nguyed99/tensor
  
-
 # launch Python script
-$HOME/tensor/bin/python3 qcp_hpc_scikit_tt.py $SLURM_ARRAY_TASK_ID
+log_memory_cpu_usage & log_time
+LOG_PID=$!
+
+/scratch/nguyed99/tensor/bin/python3 contact_process_L_10.py
+
+kill $LOG_PID

@@ -9,15 +9,14 @@ import scikit_tt.tensor_train as tt
 from scikit_tt.solvers.evp import als
 
 from src.models.contact_process_model import (construct_lindblad, construct_num_op)
-from src.utilities.utils import (canonicalize_mps, compute_correlation, compute_site_expVal)
+from src.utilities.utils import (canonicalize_mps, compute_correlation, compute_purity, compute_site_expVal)
 
 logger = logging.getLogger(__name__)
 log_filename = datetime.now().strftime("%Y-%m-%d_%H-%M-%S.log")
-logging.basicConfig(filename="/home/psireal42/study/quantum-contact-process-1D/playground/logging/" + log_filename,
-                    level=logging.INFO)
+logging.basicConfig(filename="/scratch/nguyed99/qcp-1d/logging/" + log_filename, level=logging.INFO)
 
 # path for results
-PATH = "/home/psireal42/study/quantum-contact-process-1D/results/"
+PATH = "/scratch/nguyed99/qcp-1d/results/"
 
 # system parameters
 L = 10
@@ -30,9 +29,10 @@ conv_eps = 1e-6
 
 ### Stationary simulation
 logger.info("Stationary simulation")
-spectral_gaps = []
+spectral_gaps = np.zeros(len(OMEGAS))
 n_s = np.zeros((bond_dims.shape[0], OMEGAS.shape[0]))
-purities = []
+evp_residual = np.zeros((bond_dims.shape[0], OMEGAS.shape[0]))
+purities = np.zeros(len(OMEGAS))
 correlations = np.zeros((len(OMEGAS), L // 2))
 
 for i, OMEGA in enumerate(OMEGAS):
@@ -46,7 +46,9 @@ for i, OMEGA in enumerate(OMEGAS):
         mps = (1 / mps.norm()**2) * mps
         time1 = time.time()
         eigenvalues, eigentensors, _ = als(lindblad_hermitian, mps, number_ev=2, repeats=10, conv_eps=conv_eps, sigma=0)
-        logger.info(f"{(lindblad_hermitian@eigentensors[0] - eigenvalues[0]*eigentensors[0]).norm()**2=}")
+        evp_residual[j, i] = (lindblad_hermitian @ eigentensors[0] - eigenvalues[0] * eigentensors[0]).norm()**2
+
+        logger.info(f"Residual of eigensolver: {evp_residual[j, i]}")
         time2 = time.time()
         logger.info(f"Elapsed time: {time2 - time1} seconds")
         logger.info(f"Ground state energy per site E = {eigenvalues/L}")
@@ -70,16 +72,23 @@ for i, OMEGA in enumerate(OMEGAS):
 
         if bond_dim == bond_dims[-1]:
             logger.info("Compute spectral gap of L†L for largest bond dimension")
-            spectral_gaps.append(abs(eigenvalues[1] - eigenvalues[0]))
+            spectral_gaps[i] = abs(eigenvalues[1] - eigenvalues[0])
 
             logger.info("Compute purity of state for largest bond dimension")
-            purities.append(gs_mps.norm()**2)
-            logger.info(f"purity={gs_mps.norm()**2}")
+            purities[i] = compute_purity(gs_mps)
+            logger.info(f"Purity = {purities[-1]}")
 
             logger.info("Compute half-chain density correlation for largest bond dimension")
             an_op = construct_num_op(1)
             for k in range(L // 2):
                 correlations[i, k] = abs(compute_correlation(gs_mps, an_op, r=k))
+
+# save result arrays
+np.savetxt(PATH + f"evp_residual_L_{L}.txt", evp_residual, delimiter=',')
+np.savetxt(PATH + f"spectral_gaps_L_{L}.txt", spectral_gaps, delimiter=',')
+np.savetxt(PATH + f"n_s_L_{L}.txt", n_s, delimiter=',')
+np.savetxt(PATH + f"purities_L_{L}.txt", purities, delimiter=',')
+np.savetxt(PATH + f"correlations_L_{L}.txt", correlations, delimiter=',')
 
 # plot spectral gaps
 plt.figure()
@@ -88,7 +97,7 @@ plt.xlabel(r"$\Omega$")
 plt.title(f"{L=}, $\chi=${bond_dims[-1]}")
 plt.grid()
 plt.tight_layout()
-plt.savefig(PATH + f"spectral_gaps_{L=}.png")
+plt.savefig(PATH + f"spectral_gaps_L_{L}.png")
 
 # plot stationary densities
 plt.figure()
@@ -100,7 +109,7 @@ plt.legend()
 plt.title(f"{L=}")
 plt.grid()
 plt.tight_layout()
-plt.savefig(PATH + f"stationary_density_{L=}.png")
+plt.savefig(PATH + f"stationary_density_L_{L}.png")
 
 # plot purities
 plt.figure()
@@ -110,7 +119,7 @@ plt.ylabel(r"tr($\rho^{2}$)")
 plt.title(f"{L=}, $\chi=${bond_dims[-1]}")
 plt.grid()
 plt.tight_layout()
-plt.savefig(PATH + f"purities_{L=}.png")
+plt.savefig(PATH + f"purities_L_{L}.png")
 
 # plot correlations
 plt.figure()
@@ -122,4 +131,4 @@ plt.legend()
 plt.title(f"{L=}, $\chi=${bond_dims[-1]}")
 plt.grid()
 plt.tight_layout()
-plt.savefig(PATH + f"correlations_{L=}.png")
+plt.savefig(PATH + f"correlations_L_{L}.png")
