@@ -38,8 +38,3 @@ poetry install
 # To update lock file based on pyproject.toml
 poetry lock --no-update
 ```
-
-### HPC-access
-```
-ssh  username@sheldon.physik.fu-berlin.de
-```
