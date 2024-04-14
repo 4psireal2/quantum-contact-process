@@ -1,5 +1,4 @@
 import logging
-import matplotlib.pyplot as plt
 import numpy as np
 import time
 from copy import deepcopy
@@ -13,11 +12,10 @@ from src.utilities.utils import (canonicalize_mps, compute_correlation, compute_
 
 logger = logging.getLogger(__name__)
 log_filename = datetime.now().strftime("%Y-%m-%d_%H-%M-%S.log")
-logging.basicConfig(filename="/home/psireal42/study/quantum-contact-process-1D/playground/logging/" + log_filename,
-                    level=logging.INFO)
+logging.basicConfig(filename="/scratch/nguyed99/qcp-1d/logging/" + log_filename, level=logging.INFO)
 
 # path for results
-PATH = "/home/psireal42/study/quantum-contact-process-1D/results/"
+PATH = "/scratch/nguyed99/qcp-1d/results/"
 
 # system parameters
 L = 10
@@ -32,7 +30,11 @@ conv_eps = 1e-6
 logger.info("Stationary simulation")
 spectral_gaps = np.zeros(len(OMEGAS))
 n_s = np.zeros((bond_dims.shape[0], OMEGAS.shape[0]))
+particle_nums_left = np.zeros((bond_dims.shape[0], OMEGAS.shape[0]))
+particle_nums_right = np.zeros((bond_dims.shape[0], OMEGAS.shape[0]))
 evp_residual = np.zeros((bond_dims.shape[0], OMEGAS.shape[0]))
+eval_0 = np.zeros((bond_dims.shape[0], OMEGAS.shape[0]))
+eval_1 = np.zeros((bond_dims.shape[0], OMEGAS.shape[0]))
 purities = np.zeros(len(OMEGAS))
 correlations = np.zeros((len(OMEGAS), L // 2))
 
@@ -48,6 +50,8 @@ for i, OMEGA in enumerate(OMEGAS):
         time1 = time.time()
         eigenvalues, eigentensors, _ = als(lindblad_hermitian, mps, number_ev=2, repeats=10, conv_eps=conv_eps, sigma=0)
         evp_residual[j, i] = (lindblad_hermitian @ eigentensors[0] - eigenvalues[0] * eigentensors[0]).norm()**2
+        eval_0[j, i] = eigenvalues[0]
+        eval_1[j, i] = eigenvalues[1]
 
         logger.info(f"Residual of eigensolver: {evp_residual[j, i]}")
         time2 = time.time()
@@ -71,6 +75,24 @@ for i, OMEGA in enumerate(OMEGAS):
         n_s[j, i] = np.mean(particle_nums)
         logger.info(f"Mean particle number = {n_s[j, i]}")
 
+        logger.info("Compute particle numbers (right leg)")
+        num_op_r = [None] * L
+        for k in range(L):
+            number_op_r = np.kron(np.eye(2), np.array([[0, 0], [0, 1]]))
+            num_op_r[k] = np.zeros([2, 2, 2, 2], dtype=complex)
+            num_op_r[k] = number_op_r.reshape(2, 2, 2, 2)
+        num_op_r = tt.TT(num_op_r)
+        particle_nums_right[j, i] = np.mean(compute_site_expVal(hermit_mps, num_op_r))
+
+        logger.info("Compute particle numbers (left leg)")
+        num_op_l = [None] * L
+        for k in range(L):
+            number_op_l = np.kron(np.array([[0, 0], [0, 1]]), np.eye(2))
+            num_op_l[k] = np.zeros([2, 2, 2, 2], dtype=complex)
+            num_op_l[k] = number_op_l.reshape(2, 2, 2, 2)
+        num_op_l = tt.TT(num_op_l)
+        particle_nums_left[j, i] = np.mean(compute_site_expVal(hermit_mps, num_op_l))
+
         if bond_dim == bond_dims[-1]:
             logger.info("Compute spectral gap of L†L for largest bond dimension")
             spectral_gaps[i] = abs(eigenvalues[1] - eigenvalues[0])
@@ -85,94 +107,11 @@ for i, OMEGA in enumerate(OMEGAS):
                 correlations[i, k] = abs(compute_correlation(gs_mps, an_op, r=k))
 
 # save result arrays
-np.savetxt(PATH + f"evp_residual_L_{L}.txt", evp_residual, delimiter=',')
+np.savetxt(PATH + f"eval_0_L_{L}.txt", eval_0, delimiter=',')
+np.savetxt(PATH + f"eval_1_L_{L}.txt", eval_1, delimiter=',')
+np.savetxt(PATH + f"particle_nums_left_L_{L}.txt", particle_nums_left, delimiter=',')
+np.savetxt(PATH + f"particle_nums_right_L_{L}.txt", particle_nums_right, delimiter=',')
 np.savetxt(PATH + f"spectral_gaps_L_{L}.txt", spectral_gaps, delimiter=',')
 np.savetxt(PATH + f"n_s_L_{L}.txt", n_s, delimiter=',')
 np.savetxt(PATH + f"purities_L_{L}.txt", purities, delimiter=',')
 np.savetxt(PATH + f"correlations_L_{L}.txt", correlations, delimiter=',')
-
-# plot spectral gaps
-plt.figure()
-plt.plot(OMEGAS, spectral_gaps, 'o-')
-plt.xlabel(r"$\Omega$")
-plt.title(f"{L=}, $\chi=${bond_dims[-1]}")
-plt.grid()
-plt.tight_layout()
-plt.savefig(PATH + f"spectral_gaps_L_{L}.png")
-
-# plot stationary densities
-plt.figure()
-for i, bond_dim in enumerate(bond_dims):
-    plt.plot(OMEGAS, n_s[i, :], 'o-', label=f"$\chi=${bond_dim}")
-plt.xlabel(r"$\Omega$")
-plt.ylabel(r"$n_s$")
-plt.legend()
-plt.title(f"{L=}")
-plt.grid()
-plt.tight_layout()
-plt.savefig(PATH + f"stationary_density_L_{L}.png")
-
-# plot purities
-plt.figure()
-plt.plot(OMEGAS, purities, 'o-')
-plt.xlabel(r"$\Omega$")
-plt.ylabel(r"tr($\rho^{2}$)")
-plt.title(f"{L=}, $\chi=${bond_dims[-1]}")
-plt.grid()
-plt.tight_layout()
-plt.savefig(PATH + f"purities_L_{L}.png")
-
-# plot correlations
-plt.figure()
-for i, OMEGA in enumerate(OMEGAS):
-    plt.plot(list(range(L // 2)), correlations[i, :], 'o-', label=f"$\Omega=${OMEGA}")
-plt.xlabel("r")
-plt.ylabel(r"$|C^{L/2}_{nn}(r)|$")
-plt.legend()
-plt.title(f"{L=}, $\chi=${bond_dims[-1]}")
-plt.grid()
-plt.tight_layout()
-plt.savefig(PATH + f"correlations_L_{L}.png")
-
-### Dynamical simulation
-
-# system parameters
-# L=51
-# OMEGA = 6.0
-
-# # dynamics parameter
-# step_size = 1
-# number_of_steps = 10
-# max_rank = 100
-
-# lindblad = construct_lindblad(gamma=GAMMA, omega=OMEGA, L=L)
-# lindblad_hermitian = lindblad.transpose(conjugate=True) @ lindblad
-# num_op = construct_num_op(L)
-# mps = tt.unit(L * [4], inds=25 * [0] + [3] + 25 * [0])
-# mps_t = hod(lindblad_hermitian, mps, step_size=step_size, number_of_steps=number_of_steps, normalize=2, max_rank=max_rank)
-
-# t = np.linspace(0,step_size*number_of_steps,number_of_steps)
-# particle_num_t = np.zeros((len(t), L))
-
-# for j in range(len(t)):
-#     first, _, _, last = mps_t[j].cores[0].shape
-#     mps_t[j].cores[0] = mps_t[j].cores[0].reshape(first, 2, 2, last)
-#     for i in range(1, L - 1):
-#         first, _, _, last = mps_t[j].cores[i].shape
-#         mps_t[j].cores[i] = mps_t[j].cores[i].reshape(first, 2, 2, last)
-#     first, _, _, last = mps_t[j].cores[-1].shape
-#     mps_t[j].cores[-1] = mps_t[j].cores[-1].reshape(first, 2, 2, last)
-
-#     particle_num_t[j,:] = compute_site_expVal(mps_t[j], num_op)
-
-# compute active-site density
-
-# plot result
-# for i in range(len(solution)):
-#     probs[i, :] = 1 / np.linalg.norm(probs[i, :], ord=1) * probs[i, :]
-
-# plt.figure()
-# plt.imshow(probs)
-# plt.colorbar()
-# plt.tight_layout()
-# plt.savefig("density_plot_L_51_Chi_200_critical.png")

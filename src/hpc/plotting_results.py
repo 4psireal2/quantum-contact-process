@@ -4,7 +4,7 @@ import numpy as np
 PATH = "/home/psireal42/study/quantum-contact-process-1D/hpc/results/"
 
 # system parameters
-L = 10
+L = 25
 GAMMA = 1
 OMEGAS = np.linspace(0, 10, 10)
 

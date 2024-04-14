@@ -30,16 +30,13 @@ def orthonormalize_mps(mps: tt.TT, ortho_center: int = 0) -> tt.TT:
     Returns:
     - orthon_mps: canonicalized orthonormalized mps
     """
-
     orthon_mps = orthogonalize_mps(mps, ortho_center)
+
     orthon_mps_dag = orthon_mps.transpose(conjugate=True)
     orthon_mps = canonicalize_mps(orthon_mps)
     orthon_mps_dag = canonicalize_mps(orthon_mps_dag)
 
-    norm = np.tensordot(orthon_mps.cores[ortho_center],
-                        orthon_mps_dag.cores[ortho_center],
-                        axes=([0, 1, 2, 3], [0, 1, 2, 3]))
-    orthon_mps.cores[ortho_center] = 1 / np.sqrt(norm) * orthon_mps.cores[ortho_center]
+    orthon_mps.cores[ortho_center] = 1 / orthon_mps.norm() * orthon_mps.cores[ortho_center]
 
     return orthon_mps
 
@@ -78,24 +75,6 @@ def compute_site_expVal(mps: tt.TT, mpo: tt.TT) -> np.ndarray:
     return exp_vals
 
 
-def compute_norm(mps: tt.TT) -> float:
-    """
-    Compute norm = Tr(ρ.ρ^†)
-    Args:
-    - mps: canonicalized mps
-    """
-    mps_dag = mps.transpose(conjugate=True)
-
-    left_boundary = np.ones((1, 1))
-
-    for i in range(mps_dag.order):
-        contraction = np.tensordot(mps.cores[i], mps_dag.cores[i], axes=([1, 2], [1, 2]))
-        left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1], [0, 2]))
-
-    right_boundary = np.ones((1, 1))
-    return np.trace(left_boundary @ right_boundary)
-
-
 def compute_purity(mps: tt.TT) -> float:
     """
     Compute purity = Tr(ρ.ρ)
@@ -127,9 +106,9 @@ def compute_correlation(mps: tt.TT, mpo: tt.TT, r: tt.TT) -> float:
     assert np.isclose(mps.norm()**2, 1.0)
     mps_dag = mps.transpose(conjugate=True)
 
-    dim_mid_0, _, _, dim_mid_3 = mps.cores[mps.order // 2].shape
+    dim_mid_0, _, _, _ = mps.cores[mps.order // 2].shape
     left_boundary = np.ones((dim_mid_0, dim_mid_0))
-    dim_r_0, _, _, dim_r_3 = mps.cores[mps.order // 2 + r].shape
+    _, _, _, dim_r_3 = mps.cores[mps.order // 2 + r].shape
     right_boundary = np.ones((dim_r_3, dim_r_3))
 
     # compute <O_{L/2} . O_{L/2+r}>

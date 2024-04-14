@@ -13,10 +13,11 @@ from src.utilities.utils import (canonicalize_mps, compute_correlation, compute_
 
 logger = logging.getLogger(__name__)
 log_filename = datetime.now().strftime("%Y-%m-%d_%H-%M-%S.log")
-logging.basicConfig(filename="/scratch/nguyed99/qcp-1d/logging/" + log_filename, level=logging.INFO)
+logging.basicConfig(filename="/home/psireal42/study/quantum-contact-process-1D/playground/logging/" + log_filename,
+                    level=logging.INFO)
 
 # path for results
-PATH = "/scratch/nguyed99/qcp-1d/results/"
+PATH = "/home/psireal42/study/quantum-contact-process-1D/results/"
 
 # system parameters
 L = 10
@@ -41,7 +42,7 @@ for i, OMEGA in enumerate(OMEGAS):
         lindblad = construct_lindblad(gamma=GAMMA, omega=OMEGA, L=L)
         lindblad_hermitian = lindblad.transpose(conjugate=True) @ lindblad
 
-        mps = tt.ones(row_dims=L * [4], col_dims=L * [1], ranks=bond_dim)
+        mps = tt.ones(row_dims=L * [4], col_dims=L * [1], ranks=bond_dim)  ##XXX: Problem with big L??
         mps = mps.ortho()
         mps = (1 / mps.norm()**2) * mps
         time1 = time.time()
@@ -132,3 +133,46 @@ plt.title(f"{L=}, $\chi=${bond_dims[-1]}")
 plt.grid()
 plt.tight_layout()
 plt.savefig(PATH + f"correlations_L_{L}.png")
+
+### Dynamical simulation
+
+# system parameters
+# L=51
+# OMEGA = 6.0
+
+# # dynamics parameter
+# step_size = 1
+# number_of_steps = 10
+# max_rank = 100
+
+# lindblad = construct_lindblad(gamma=GAMMA, omega=OMEGA, L=L)
+# lindblad_hermitian = lindblad.transpose(conjugate=True) @ lindblad
+# num_op = construct_num_op(L)
+# mps = tt.unit(L * [4], inds=25 * [0] + [3] + 25 * [0])
+# mps_t = hod(lindblad_hermitian, mps, step_size=step_size, number_of_steps=number_of_steps, normalize=2, max_rank=max_rank)
+
+# t = np.linspace(0,step_size*number_of_steps,number_of_steps)
+# particle_num_t = np.zeros((len(t), L))
+
+# for j in range(len(t)):
+#     first, _, _, last = mps_t[j].cores[0].shape
+#     mps_t[j].cores[0] = mps_t[j].cores[0].reshape(first, 2, 2, last)
+#     for i in range(1, L - 1):
+#         first, _, _, last = mps_t[j].cores[i].shape
+#         mps_t[j].cores[i] = mps_t[j].cores[i].reshape(first, 2, 2, last)
+#     first, _, _, last = mps_t[j].cores[-1].shape
+#     mps_t[j].cores[-1] = mps_t[j].cores[-1].reshape(first, 2, 2, last)
+
+#     particle_num_t[j,:] = compute_site_expVal(mps_t[j], num_op)
+
+# compute active-site density
+
+# plot result
+# for i in range(len(solution)):
+#     probs[i, :] = 1 / np.linalg.norm(probs[i, :], ord=1) * probs[i, :]
+
+# plt.figure()
+# plt.imshow(probs)
+# plt.colorbar()
+# plt.tight_layout()
+# plt.savefig("density_plot_L_51_Chi_200_critical.png")

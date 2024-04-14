@@ -49,12 +49,16 @@ export MKL_NUM_THREADS=$SLURM_CPUS_PER_TASK
 export VECLIB_MAXIMUM_THREADS=$SLURM_CPUS_PER_TASK
 export NUMEXPR_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
+L=10
+LOG_PATH="/scratch/nguyed99/qcp-1d/logging"
+
+# functions for logging memory usage and time
 log_memory_cpu_usage() {
         while true; do
-                echo -n "$(date +'%Y-%m-%d %H:%M:%S') " >> usage_log.txt
+                echo -n "$(date +'%Y-%m-%d %H:%M:%S') " >> "$LOG_PATH/usage_log_L_${L}.txt"
                 # only include the used and total memory
-                free -h | awk '/^Mem:/ { print $3 "/" $2 }' >> usage_log.txt
-                top -bn1 | awk '/^%Cpu/ { print "CPU: " $2 " us, " $4 " sy" }' >> usage_log.txt
+                free -h | awk '/^Mem:/ { print $3 "/" $2 }' >> "$LOG_PATH/usage_log_L_${L}.txt"
+                top -bn1 | awk '/^%Cpu/ { print "CPU: " $2 " us, " $4 " sy" }' >> "$LOG_PATH/usage_log_L_${L}.txt"
                 sleep 900
         done
 }
@@ -64,16 +68,16 @@ log_time() {
         $@
         local end=$(date +%s)
         local runtime=$((end - start))
-        echo "$(date +'%Y-%m-%d %H:%M:%S') Time taken for $@: ${runtime}s" >> time_log.txt
+        echo "$(date +'%Y-%m-%d %H:%M:%S') Time taken for $@: ${runtime}s" >> "$LOG_PATH/time_log_L_${L}.txt"
 }
 
-# create and activate virtualenv
-python3 -m venv /scratch/nguyed99/tensor
+# activate virtualenv
+source /scratch/nguyed99/tensor/bin/activate
  
 # launch Python script
 log_memory_cpu_usage & log_time
 LOG_PID=$!
 
-/scratch/nguyed99/tensor/bin/python3 contact_process_L_10.py
+python3 contact_process_stat.py >> "$LOG_PATH/contact_process_stat_L_${L}.out"
 
 kill $LOG_PID
