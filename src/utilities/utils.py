@@ -64,13 +64,13 @@ def compute_site_expVal(mps: tt.TT, mpo: tt.TT) -> np.ndarray:
     mps_dag = mps.transpose(conjugate=True)
     for i in range(mps.order):
         tensor_norm = np.tensordot(mps.cores[i], mps_dag.cores[i], axes=([0, 1, 2, 3], [0, 1, 2, 3]))
-        tensor_norm = float(tensor_norm.squeeze())
+        tensor_norm = float((tensor_norm.squeeze()).real)
 
         contraction = np.tensordot(mps.cores[i], mpo.cores[i], axes=([1, 2], [0, 1]))
         contraction = contraction.transpose(0, 2, 3, 1)
         contraction = np.tensordot(contraction, mps_dag.cores[i], axes=([0, 1, 2, 3], [0, 1, 2, 3]))
 
-        exp_vals[i] = float(contraction.squeeze()) / tensor_norm
+        exp_vals[i] = float((contraction.squeeze()).real) / tensor_norm
 
     return exp_vals
 

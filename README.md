@@ -18,6 +18,8 @@
 - OBSERVATION: convergence for E doesn't require large bond dimensions, but for other observables alr!
 - scikit-tt norm needs to be squared
 - Automate testing pipeline
+- reproducibility test
+- results from time-propagation is strange
 
 ## Technical details 
 Required tools: `poetry`
