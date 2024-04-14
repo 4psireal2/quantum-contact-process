@@ -10,11 +10,14 @@ OMEGAS = np.linspace(0, 10, 10)
 
 # TN algorithm parameters
 bond_dims = np.array([8, 16, 20])
-conv_eps = 1e-6
 
 # load arrays
 spectral_gaps = np.loadtxt(PATH + f"spectral_gaps_L_{L}.txt", delimiter=',')
 n_s = np.loadtxt(PATH + f"n_s_L_{L}.txt", delimiter=',')
+particle_nums_left = np.loadtxt(PATH + f"particle_nums_left_L_{L}.txt", delimiter=',')
+particle_nums_right = np.loadtxt(PATH + f"particle_nums_right_L_{L}.txt", delimiter=',')
+eval_0 = np.loadtxt(PATH + f"eval_0_L_{L}.txt", delimiter=',')
+eval_1 = np.loadtxt(PATH + f"eval_1_L_{L}.txt", delimiter=',')
 purities = np.loadtxt(PATH + f"purities_L_{L}.txt", delimiter=',')
 correlations = np.loadtxt(PATH + f"correlations_L_{L}.txt", delimiter=',')
 evp_residual = np.loadtxt(PATH + f"evp_residual_L_{L}.txt", delimiter=',')
@@ -28,6 +31,29 @@ plt.grid()
 plt.tight_layout()
 plt.savefig(PATH + f"spectral_gaps_L_{L}.png")
 
+# plot eigenvalues
+plt.figure()
+for i, bond_dim in enumerate(bond_dims):
+    plt.plot(OMEGAS, eval_0[i, :], 'o-', label=f"$\chi=${bond_dim}")
+plt.xlabel(r"$\Omega$")
+plt.ylabel(r"$\lambda_0$")
+plt.legend()
+plt.title(f"{L=}")
+plt.grid()
+plt.tight_layout()
+plt.savefig(PATH + f"eval_0_L_{L}.png")
+
+plt.figure()
+for i, bond_dim in enumerate(bond_dims):
+    plt.plot(OMEGAS, eval_1[i, :], 'o-', label=f"$\chi=${bond_dim}")
+plt.xlabel(r"$\Omega$")
+plt.ylabel(r"$\lambda_1$")
+plt.legend()
+plt.title(f"{L=}")
+plt.grid()
+plt.tight_layout()
+plt.savefig(PATH + f"eval_1_L_{L}.png")
+
 # plot stationary densities
 plt.figure()
 for i, bond_dim in enumerate(bond_dims):
@@ -40,8 +66,30 @@ plt.grid()
 plt.tight_layout()
 plt.savefig(PATH + f"stationary_density_L_{L}.png")
 
+# plot particle numbers
+plt.figure()
+for i, bond_dim in enumerate(bond_dims):
+    plt.plot(OMEGAS, particle_nums_left[i, :], 'o-', label=f"$\chi=${bond_dim}")
+plt.xlabel(r"$\Omega$")
+plt.ylabel(r"$n_L$")
+plt.legend()
+plt.title(f"{L=}")
+plt.grid()
+plt.tight_layout()
+plt.savefig(PATH + f"particle_nums_left_L_{L}.png")
+
+plt.figure()
+for i, bond_dim in enumerate(bond_dims):
+    plt.plot(OMEGAS, particle_nums_right[i, :], 'o-', label=f"$\chi=${bond_dim}")
+plt.xlabel(r"$\Omega$")
+plt.ylabel(r"$n_R$")
+plt.legend()
+plt.title(f"{L=}")
+plt.grid()
+plt.tight_layout()
+plt.savefig(PATH + f"particle_nums_right_L_{L}.png")
+
 # plot eigensolver residuals
-# plot stationary densities
 plt.figure()
 for i, bond_dim in enumerate(bond_dims):
     plt.plot(OMEGAS, evp_residual[i, :], 'o-', label=f"$\chi=${bond_dim}")

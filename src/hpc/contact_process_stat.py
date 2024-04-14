@@ -94,6 +94,7 @@ for i, OMEGA in enumerate(OMEGAS):
         particle_nums_left[j, i] = np.mean(compute_site_expVal(hermit_mps, num_op_l))
 
         if bond_dim == bond_dims[-1]:
+            logger.info(f"{bond_dim=}")
             logger.info("Compute spectral gap of L†L for largest bond dimension")
             spectral_gaps[i] = abs(eigenvalues[1] - eigenvalues[0])
 
@@ -106,12 +107,14 @@ for i, OMEGA in enumerate(OMEGAS):
             for k in range(L // 2):
                 correlations[i, k] = abs(compute_correlation(gs_mps, an_op, r=k))
 
+time3 = "{:%Y_%m_%d_%H_%M_%S}".format(datetime.now())
 # save result arrays
-np.savetxt(PATH + f"eval_0_L_{L}.txt", eval_0, delimiter=',')
-np.savetxt(PATH + f"eval_1_L_{L}.txt", eval_1, delimiter=',')
-np.savetxt(PATH + f"particle_nums_left_L_{L}.txt", particle_nums_left, delimiter=',')
-np.savetxt(PATH + f"particle_nums_right_L_{L}.txt", particle_nums_right, delimiter=',')
-np.savetxt(PATH + f"spectral_gaps_L_{L}.txt", spectral_gaps, delimiter=',')
-np.savetxt(PATH + f"n_s_L_{L}.txt", n_s, delimiter=',')
-np.savetxt(PATH + f"purities_L_{L}.txt", purities, delimiter=',')
-np.savetxt(PATH + f"correlations_L_{L}.txt", correlations, delimiter=',')
+np.savetxt(PATH + f"eval_0_L_{L}_{time3}.txt", eval_0, delimiter=',')
+np.savetxt(PATH + f"eval_1_L_{L}_{time3}.txt", eval_1, delimiter=',')
+np.savetxt(PATH + f"evp_residual_L_{L}_{time3}.txt", evp_residual, delimiter=',')
+np.savetxt(PATH + f"particle_nums_left_L_{L}_{time3}.txt", particle_nums_left, delimiter=',')
+np.savetxt(PATH + f"particle_nums_right_L_{L}_{time3}.txt", particle_nums_right, delimiter=',')
+np.savetxt(PATH + f"spectral_gaps_L_{L}_{time3}.txt", spectral_gaps, delimiter=',')
+np.savetxt(PATH + f"n_s_L_{L}_{time3}.txt", n_s, delimiter=',')
+np.savetxt(PATH + f"purities_L_{L}_{time3}.txt", purities, delimiter=',')
+np.savetxt(PATH + f"correlations_L_{L}_{time3}.txt", correlations, delimiter=',')

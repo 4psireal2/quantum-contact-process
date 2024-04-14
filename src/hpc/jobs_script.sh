@@ -51,6 +51,7 @@ export NUMEXPR_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
 L=10
 LOG_PATH="/scratch/nguyed99/qcp-1d/logging"
+timestamp=$(date +'%Y-%m-%d-%H-%M-%S')
 
 # functions for logging memory usage and time
 log_memory_cpu_usage() {
@@ -78,6 +79,6 @@ source /scratch/nguyed99/tensor/bin/activate
 log_memory_cpu_usage & log_time
 LOG_PID=$!
 
-python3 contact_process_stat.py >> "$LOG_PATH/contact_process_stat_L_${L}.out"
+python3 contact_process_stat.py > "$LOG_PATH/contact_process_stat_L_${L}_${timestamp}.out"
 
 kill $LOG_PID
