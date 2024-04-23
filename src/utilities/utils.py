@@ -1,6 +1,7 @@
 from copy import deepcopy
 
 import numpy as np
+from scipy import linalg
 
 import scikit_tt.tensor_train as tt
 
@@ -93,7 +94,7 @@ def compute_site_expVal(mps: tt.TT, mpo: tt.TT) -> np.ndarray:
 
 def compute_site_expVal_1(mps: tt.TT, mpo: tt.TT) -> np.ndarray:
 
-    site_vals = np.zeros(mps.order, dtype=complex)
+    site_vals = np.zeros(mps.order, dtype=float)
 
     for i in range(mps.order):
         left_boundary = np.ones(1)
@@ -108,7 +109,10 @@ def compute_site_expVal_1(mps: tt.TT, mpo: tt.TT) -> np.ndarray:
 
             left_boundary = np.tensordot(left_boundary, contraction, axes=([0], [0]))
 
-        site_vals[i] = left_boundary @ right_boundary
+        if (left_boundary @ right_boundary).imag < 1e-12:
+            site_vals[i] = (left_boundary @ right_boundary).real
+        else:
+            raise ValueError("Complex expectation value is found.")
 
     return site_vals
 
@@ -225,3 +229,24 @@ def compute_correlation_1(mps: tt.TT, mpo: tt.TT, r0: int, r1: int) -> float:
     product_mean *= left_boundary @ right_boundary
 
     return mean_product - product_mean
+
+
+def compute_eigenvalue_spectrum(mps: tt.TT) -> np.ndarray:
+    """
+    Perform SVD in the middle of the chain
+
+    Returns:
+    n_eig: number of eigenvalues from the SVD
+    """
+
+    half_chain_index = mps.order // 2
+
+    [_, s,
+     _] = linalg.svd(mps.cores[half_chain_index].reshape(mps.ranks[half_chain_index] * mps.row_dims[half_chain_index],
+                                                         mps.ranks[half_chain_index + 1]),
+                     full_matrices=False,
+                     overwrite_a=True,
+                     check_finite=False,
+                     lapack_driver='gesvd')
+
+    return s
