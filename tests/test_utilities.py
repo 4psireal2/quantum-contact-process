@@ -1,6 +1,5 @@
 import logging
 import unittest
-from copy import deepcopy
 
 import numpy as np
 
@@ -12,7 +11,7 @@ import src.models.contact_process_model as model
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-L = 10
+L = 5
 BOND_DIM = 3
 basis_0 = np.array([1, 0])
 basis_1 = np.array([0, 1])
@@ -21,7 +20,7 @@ basis_1 = np.array([0, 1])
 class UtilityFunctions(unittest.TestCase):
 
     def test_mixed_canonical_form(self):
-        ortho_center = 5
+        ortho_center = 3
         mps = tt.ones(row_dims=L * [4], col_dims=L * [1], ranks=BOND_DIM)
         mps = utils.orthogonalize_mps(mps, ortho_center)
         mps_dag = mps.transpose(conjugate=True)
@@ -33,7 +32,7 @@ class UtilityFunctions(unittest.TestCase):
         assert np.allclose(a, np.eye(BOND_DIM))
 
         # check right orthogonalization
-        b = np.tensordot(mps.cores[6], mps_dag.cores[6], axes=([1, 2, 3], [1, 2, 3]))
+        b = np.tensordot(mps.cores[ortho_center + 1], mps_dag.cores[ortho_center + 1], axes=([1, 2, 3], [1, 2, 3]))
         assert np.allclose(b, np.eye(BOND_DIM))
 
         # check norm
@@ -47,26 +46,19 @@ class UtilityFunctions(unittest.TestCase):
         assert np.isclose(norm, 1.0)
 
     def test_num_op(self):
+        mps_tests = [
+            utils.construct_basis_mps(L, basis=[np.kron(basis_1, basis_1)] * L),
+            utils.construct_basis_mps(L, basis=[np.kron(basis_1, basis_0)] * L),
+            utils.construct_basis_mps(L, basis=[np.kron(basis_0, basis_1)] * L),
+            utils.construct_basis_mps(L, basis=[np.kron(basis_0, basis_0)] * L)
+        ]
+        num_op_chain = model.construct_num_op(L)
 
-        mps = utils.construct_basis_mps(L, basis=[np.kron(basis_1, basis_1)] * L)
-        hermit_mps = deepcopy(mps)
-        mps_dag = mps.transpose(conjugate=True)
-
-        for k in range(L):
-            hermit_mps.cores[k] = (mps.cores[k] + mps_dag.cores[k]) / 2
-        particle_nums = utils.compute_site_expVal(hermit_mps, model.construct_num_op(L))
-
-        assert np.array_equal(particle_nums, 2 * np.ones(L))
-
-        mps = utils.construct_basis_mps(L, basis=[np.kron(basis_0, basis_0)] * L)
-        hermit_mps = deepcopy(mps)
-        mps_dag = mps.transpose(conjugate=True)
-
-        for k in range(L):
-            hermit_mps.cores[k] = (mps.cores[k] + mps_dag.cores[k]) / 2
-        particle_nums = utils.compute_site_expVal(hermit_mps, model.construct_num_op(L))
-
-        assert np.array_equal(particle_nums, np.zeros(L))
+        # expected arrays of single site expectation values
+        site_vals = [2 * np.ones(L), np.ones(L), np.ones(L), np.zeros(L)]
+        for i, mps in enumerate(mps_tests):
+            site_expVal = utils.compute_site_expVal(mps, num_op_chain)
+            assert np.array_equal(site_expVal, site_vals[i])
 
     def test_purity(self):
         mps_1 = utils.construct_basis_mps(L, basis=[np.kron(basis_1, basis_1)] * L)

@@ -8,7 +8,7 @@ import scikit_tt.tensor_train as tt
 from scikit_tt.solvers.evp import als
 
 from src.models.contact_process_model import (construct_lindblad, construct_num_op)
-from src.utilities.utils import (canonicalize_mps, compute_correlation, compute_purity, compute_site_expVal)
+from src.utilities.utils import (canonicalize_mps, compute_correlation_1, compute_purity, compute_site_expVal_1)
 
 logger = logging.getLogger(__name__)
 log_filename = datetime.now().strftime("%Y-%m-%d_%H-%M-%S.log")
@@ -21,10 +21,12 @@ PATH = "/home/psireal42/study/quantum-contact-process-1D/results/"
 # system parameters
 L = 10
 GAMMA = 1
-OMEGAS = np.linspace(0, 10, 10)
+# OMEGAS = np.linspace(0, 10, 10)
+OMEGAS = np.array([3.0])
 
 # TN algorithm parameters
-bond_dims = np.array([8, 16, 20])
+# bond_dims = np.array([8, 16, 20])
+bond_dims = np.array([16])
 conv_eps = 1e-6
 
 ### Stationary simulation
@@ -37,7 +39,7 @@ evp_residual = np.zeros((bond_dims.shape[0], OMEGAS.shape[0]))
 eval_0 = np.zeros((bond_dims.shape[0], OMEGAS.shape[0]))
 eval_1 = np.zeros((bond_dims.shape[0], OMEGAS.shape[0]))
 purities = np.zeros(len(OMEGAS))
-correlations = np.zeros((len(OMEGAS), L // 2))
+correlations = np.zeros((len(OMEGAS), L - 1))
 
 for i, OMEGA in enumerate(OMEGAS):
     for j, bond_dim in enumerate(bond_dims):
@@ -72,27 +74,27 @@ for i, OMEGA in enumerate(OMEGAS):
             hermit_mps.cores[k] = (gs_mps.cores[k] + gs_mps_dag.cores[k]) / 2
 
         logger.info("Compute particle numbers")
-        particle_nums = compute_site_expVal(hermit_mps, construct_num_op(L))
+        particle_nums = compute_site_expVal_1(hermit_mps, construct_num_op(L))
         n_s[j, i] = np.mean(particle_nums)
         logger.info(f"Mean particle number = {n_s[j, i]}")
 
-        logger.info("Compute particle numbers (right leg)")
-        num_op_r = [None] * L
-        for k in range(L):
-            number_op_r = np.kron(np.eye(2), np.array([[0, 0], [0, 1]]))
-            num_op_r[k] = np.zeros([2, 2, 2, 2], dtype=complex)
-            num_op_r[k] = number_op_r.reshape(2, 2, 2, 2)
-        num_op_r = tt.TT(num_op_r)
-        particle_nums_right[j, i] = np.mean(compute_site_expVal(hermit_mps, num_op_r))
+        # logger.info("Compute particle numbers (right leg)")
+        # num_op_r = [None] * L
+        # for k in range(L):
+        #     number_op_r = np.kron(np.eye(2), np.array([[0, 0], [0, 1]]))
+        #     num_op_r[k] = np.zeros([2, 2, 2, 2], dtype=complex)
+        #     num_op_r[k] = number_op_r.reshape(2, 2, 2, 2)
+        # num_op_r = tt.TT(num_op_r)
+        # particle_nums_right[j, i] = np.mean(compute_site_expVal(hermit_mps, num_op_r))
 
-        logger.info("Compute particle numbers (left leg)")
-        num_op_l = [None] * L
-        for k in range(L):
-            number_op_l = np.kron(np.array([[0, 0], [0, 1]]), np.eye(2))
-            num_op_l[k] = np.zeros([2, 2, 2, 2], dtype=complex)
-            num_op_l[k] = number_op_l.reshape(2, 2, 2, 2)
-        num_op_l = tt.TT(num_op_l)
-        particle_nums_left[j, i] = np.mean(compute_site_expVal(hermit_mps, num_op_l))
+        # logger.info("Compute particle numbers (left leg)")
+        # num_op_l = [None] * L
+        # for k in range(L):
+        #     number_op_l = np.kron(np.array([[0, 0], [0, 1]]), np.eye(2))
+        #     num_op_l[k] = np.zeros([2, 2, 2, 2], dtype=complex)
+        #     num_op_l[k] = number_op_l.reshape(2, 2, 2, 2)
+        # num_op_l = tt.TT(num_op_l)
+        # particle_nums_left[j, i] = np.mean(compute_site_expVal(hermit_mps, num_op_l))
 
         if bond_dim == bond_dims[-1]:
             logger.info(f"{bond_dim=}")
@@ -105,20 +107,20 @@ for i, OMEGA in enumerate(OMEGAS):
 
             logger.info("Compute half-chain density correlation for largest bond dimension")
             an_op = construct_num_op(1)
-            for k in range(L // 2):
-                correlations[i, k] = abs(compute_correlation(gs_mps, an_op, r=k))
+            for k in range(L - 1):
+                correlations[i, k] = abs(compute_correlation_1(gs_mps, an_op, r0=0, r1=k + 1))
 
 time3 = "{:%Y_%m_%d_%H_%M_%S}".format(datetime.now())
 # save result arrays
-np.savetxt(PATH + f"eval_0_L_{L}_{time3}.txt", eval_0, delimiter=',')
-np.savetxt(PATH + f"eval_1_L_{L}_{time3}.txt", eval_1, delimiter=',')
-np.savetxt(PATH + f"evp_residual_L_{L}_{time3}.txt", evp_residual, delimiter=',')
-np.savetxt(PATH + f"particle_nums_left_L_{L}_{time3}.txt", particle_nums_left, delimiter=',')
-np.savetxt(PATH + f"particle_nums_right_L_{L}_{time3}.txt", particle_nums_right, delimiter=',')
-np.savetxt(PATH + f"spectral_gaps_L_{L}_{time3}.txt", spectral_gaps, delimiter=',')
-np.savetxt(PATH + f"n_s_L_{L}_{time3}.txt", n_s, delimiter=',')
-np.savetxt(PATH + f"purities_L_{L}_{time3}.txt", purities, delimiter=',')
-np.savetxt(PATH + f"correlations_L_{L}_{time3}.txt", correlations, delimiter=',')
+# np.savetxt(PATH + f"eval_0_L_{L}_{time3}.txt", eval_0, delimiter=',')
+# np.savetxt(PATH + f"eval_1_L_{L}_{time3}.txt", eval_1, delimiter=',')
+# np.savetxt(PATH + f"evp_residual_L_{L}_{time3}.txt", evp_residual, delimiter=',')
+# np.savetxt(PATH + f"particle_nums_left_L_{L}_{time3}.txt", particle_nums_left, delimiter=',')
+# np.savetxt(PATH + f"particle_nums_right_L_{L}_{time3}.txt", particle_nums_right, delimiter=',')
+# np.savetxt(PATH + f"spectral_gaps_L_{L}_{time3}.txt", spectral_gaps, delimiter=',')
+# np.savetxt(PATH + f"n_s_L_{L}_{time3}.txt", n_s, delimiter=',')
+# np.savetxt(PATH + f"purities_L_{L}_{time3}.txt", purities, delimiter=',')
+# np.savetxt(PATH + f"correlations_L_{L}_{time3}.txt", correlations, delimiter=',')
 
 ### Dynamical simulation
 

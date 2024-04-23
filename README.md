@@ -20,6 +20,7 @@
 - Automate testing pipeline
 - reproducibility test
 - results from time-propagation is strange
+- check for unphysicality of solution [it doesn't make sense to have purity = 0?]
 
 ## Technical details 
 Required tools: `poetry`

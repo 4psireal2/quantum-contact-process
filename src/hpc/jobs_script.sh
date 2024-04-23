@@ -16,7 +16,7 @@
 #SBATCH --ntasks=1
 
 # number of CPUs per task
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=24
 
 # memory per CPU in MB (see also --mem) 
 #SBATCH --mem-per-cpu=2048
@@ -29,10 +29,6 @@
 
 # file to which standard errors will be written (%A --> jobID, %a --> arrayID)
 #SBATCH --error=logFiles/simulationName_%A_%a_$(date +\%d\%m\%y\%H\%M).err
-
-# job arrays
-#SBATCH --array=0-1
-
 
 # select partition
 #SBATCH --partition=main

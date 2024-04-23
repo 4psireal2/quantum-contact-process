@@ -52,6 +52,22 @@ def canonicalize_mps(mps: tt.TT) -> tt.TT:
     return mps
 
 
+def compute_purity(mps: tt.TT) -> float:
+    """
+    Compute purity = Tr(ρ.ρ)
+    Args:
+    - mps: canonicalized mps
+    """
+    left_boundary = np.ones((1, 1))
+
+    for i in range(mps.order):
+        contraction = np.tensordot(mps.cores[i], mps.cores[i], axes=([1, 2], [2, 1]))
+        left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1], [0, 2]))
+
+    right_boundary = np.ones((1, 1))
+    return np.trace(left_boundary @ right_boundary)
+
+
 def compute_site_expVal(mps: tt.TT, mpo: tt.TT) -> np.ndarray:
     """
     Args:
@@ -75,20 +91,26 @@ def compute_site_expVal(mps: tt.TT, mpo: tt.TT) -> np.ndarray:
     return exp_vals
 
 
-def compute_purity(mps: tt.TT) -> float:
-    """
-    Compute purity = Tr(ρ.ρ)
-    Args:
-    - mps: canonicalized mps
-    """
-    left_boundary = np.ones((1, 1))
+def compute_site_expVal_1(mps: tt.TT, mpo: tt.TT) -> np.ndarray:
+
+    site_vals = np.zeros(mps.order, dtype=complex)
 
     for i in range(mps.order):
-        contraction = np.tensordot(mps.cores[i], mps.cores[i], axes=([1, 2], [2, 1]))
-        left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1], [0, 2]))
+        left_boundary = np.ones(1)
+        right_boundary = np.ones(1)
 
-    right_boundary = np.ones((1, 1))
-    return np.trace(left_boundary @ right_boundary)
+        for j in range(mps.order):
+            if j == i:
+                contraction = np.tensordot(mps.cores[j], mpo.cores[0], axes=([1, 2], [0, 1]))
+                contraction = np.einsum('ijlk->ij', contraction)  # tracing over the physical indices
+            else:
+                contraction = np.einsum('ikjl->il', mps.cores[j])  # tracing over the physical indices
+
+            left_boundary = np.tensordot(left_boundary, contraction, axes=([0], [0]))
+
+        site_vals[i] = left_boundary @ right_boundary
+
+    return site_vals
 
 
 def compute_correlation(mps: tt.TT, mpo: tt.TT, r: tt.TT) -> float:
@@ -146,5 +168,60 @@ def compute_correlation(mps: tt.TT, mpo: tt.TT, r: tt.TT) -> float:
                                  axes=([0, 1, 2, 3], [0, 1, 2, 3]))
 
     product_mean = contraction_1 * contraction_2
+
+    return mean_product - product_mean
+
+
+def compute_correlation_1(mps: tt.TT, mpo: tt.TT, r0: int, r1: int) -> float:
+    """
+    Compute  <O_{r0} . O_{r1}> - <O_{r0}><O_{r1}>
+
+    Args:
+    - mps: canonicalized mps
+    - mpo: 1 core with shape (2,2,2,2)
+    - r0, r1: first, second index of sites on the TT 
+    """
+
+    left_boundary = np.ones(1)
+    right_boundary = np.ones(1)
+
+    # compute <O_{r0} . O_{r1}>
+    for i in range(mps.order):
+        if i != r0 and i != r1:
+            contraction = np.einsum('ikjl->il', mps.cores[i])
+        else:
+            contraction = np.tensordot(mps.cores[i], mpo.cores[0], axes=([1, 2], [0, 1]))
+            contraction = np.einsum('ijlk->ij', contraction)  # tracing over the physical indices
+        left_boundary = np.tensordot(left_boundary, contraction, axes=([0], [0]))
+
+    mean_product = left_boundary @ right_boundary
+
+    # compute <O_{r0}><O_{r1}>
+    left_boundary = np.ones(1)
+    right_boundary = np.ones(1)
+
+    for j in range(mps.order):
+        if j == r0:
+            contraction = np.tensordot(mps.cores[j], mpo.cores[0], axes=([1, 2], [0, 1]))
+            contraction = np.einsum('ijlk->ij', contraction)  # tracing over the physical indices
+        else:
+            contraction = np.einsum('ikjl->il', mps.cores[j])  # tracing over the physical indices
+
+        left_boundary = np.tensordot(left_boundary, contraction, axes=([0], [0]))
+
+    product_mean = left_boundary @ right_boundary
+    left_boundary = np.ones(1)
+    right_boundary = np.ones(1)
+
+    for j in range(mps.order):
+        if j == r1:
+            contraction = np.tensordot(mps.cores[j], mpo.cores[0], axes=([1, 2], [0, 1]))
+            contraction = np.einsum('ijlk->ij', contraction)  # tracing over the physical indices
+        else:
+            contraction = np.einsum('ikjl->il', mps.cores[j])  # tracing over the physical indices
+
+        left_boundary = np.tensordot(left_boundary, contraction, axes=([0], [0]))
+
+    product_mean *= left_boundary @ right_boundary
 
     return mean_product - product_mean
