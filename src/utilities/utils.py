@@ -46,11 +46,14 @@ def canonicalize_mps(mps: tt.TT) -> tt.TT:
     """
     Bring mps into a vectorized form in Tensorkit's notation
     """
+    cores = [None] * mps.order
     for k in range(mps.order):
-        first, _, _, last = mps.cores[k].shape
-        mps.cores[k] = mps.cores[k].reshape(first, 2, 2, last)
+        r1 = mps.ranks[k]
+        r2 = mps.ranks[k + 1]
+        n = int(np.sqrt(mps.row_dims[k]))
+        cores[k] = mps.cores[k].reshape([r1, n, n, r2])
 
-    return mps
+    return tt.TT(cores)
 
 
 def compute_purity(mps: tt.TT) -> float:
@@ -66,7 +69,7 @@ def compute_purity(mps: tt.TT) -> float:
         left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1], [0, 2]))
 
     right_boundary = np.ones((1, 1))
-    return np.trace(left_boundary @ right_boundary)
+    return np.trace(left_boundary @ right_boundary).item()
 
 
 def compute_site_expVal(mps: tt.TT, mpo: tt.TT) -> np.ndarray:
@@ -92,7 +95,10 @@ def compute_site_expVal(mps: tt.TT, mpo: tt.TT) -> np.ndarray:
     return exp_vals
 
 
-def compute_site_expVal_1(mps: tt.TT, mpo: tt.TT) -> np.ndarray:
+def compute_site_expVal_vMPO(mps: tt.TT, mpo: tt.TT) -> np.ndarray:
+    """
+    Compute ā = (1/L) *  Σ_k Tr(ρ A_k)
+    """
 
     site_vals = np.zeros(mps.order, dtype=float)
 
@@ -115,6 +121,28 @@ def compute_site_expVal_1(mps: tt.TT, mpo: tt.TT) -> np.ndarray:
             raise ValueError("Complex expectation value is found.")
 
     return site_vals
+
+
+def compute_expVal(mps: tt.TT, mpo: tt.TT) -> float:
+    """
+    Compute ⟨Φ(ρ)∣ Lˆ†Lˆ∣Φ(ρ)⟩ 
+    """
+    left_boundary = np.ones((1, 1, 1))
+    right_boundary = np.ones((1, 1, 1))
+
+    mps_dag = mps.transpose(conjugate=True)
+    for i in range(mps.order):
+        r1, r2 = mpo.ranks[i], mpo.ranks[i + 1]
+        mpo_core = mpo.cores[i].reshape(r1, 2, 2, 2, 2, r2)
+        contraction = np.tensordot(mps.cores[i], mpo_core, axes=([1, 2], [3, 4]))
+        contraction = np.tensordot(contraction, mps_dag.cores[i], axes=([3, 4], [1, 2]))
+        left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1, 2], [0, 2, 4]))
+
+    exp_val = np.trace(left_boundary @ right_boundary).item()
+    if exp_val.imag < 1e-12:
+        return exp_val.real
+    else:
+        raise ValueError("Complex expectation value is found.")
 
 
 def compute_correlation(mps: tt.TT, mpo: tt.TT, r: tt.TT) -> float:
@@ -154,7 +182,7 @@ def compute_correlation(mps: tt.TT, mpo: tt.TT, r: tt.TT) -> float:
 
         left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1], [0, 2]))
 
-    mean_product = np.trace(left_boundary @ right_boundary)
+    mean_product = np.trace(left_boundary @ right_boundary).item()
 
     # compute <O_{L/2}><O_{L/2+r}>
     contraction_1 = np.tensordot(mps.cores[mps.order // 2], mpo.cores[0], axes=([1, 2], [0, 1]))
@@ -176,9 +204,9 @@ def compute_correlation(mps: tt.TT, mpo: tt.TT, r: tt.TT) -> float:
     return mean_product - product_mean
 
 
-def compute_correlation_1(mps: tt.TT, mpo: tt.TT, r0: int, r1: int) -> float:
+def compute_correlation_vMPO(mps: tt.TT, mpo: tt.TT, r0: int, r1: int) -> float:
     """
-    Compute  <O_{r0} . O_{r1}> - <O_{r0}><O_{r1}>
+    Compute  <O_{r0} . O_{r1}> - <O_{r0}><O_{r1}> with trace
 
     Args:
     - mps: canonicalized mps
@@ -201,6 +229,7 @@ def compute_correlation_1(mps: tt.TT, mpo: tt.TT, r0: int, r1: int) -> float:
     mean_product = left_boundary @ right_boundary
 
     # compute <O_{r0}><O_{r1}>
+    # compute <O_{r0}>
     left_boundary = np.ones(1)
     right_boundary = np.ones(1)
 
@@ -214,6 +243,8 @@ def compute_correlation_1(mps: tt.TT, mpo: tt.TT, r0: int, r1: int) -> float:
         left_boundary = np.tensordot(left_boundary, contraction, axes=([0], [0]))
 
     product_mean = left_boundary @ right_boundary
+
+    # compute <O_{r1}>
     left_boundary = np.ones(1)
     right_boundary = np.ones(1)
 
