@@ -261,27 +261,6 @@ def compute_correlation_vMPO(mps: tt.TT, mpo: tt.TT, r0: int, r1: int) -> float:
     return mean_product - product_mean
 
 
-def compute_eigenvalue_spectrum(mps: tt.TT) -> np.ndarray:
-    """
-    Perform SVD in the middle of the chain
-
-    Returns:
-    n_eig: number of eigenvalues from the SVD
-    """
-
-    half_chain_index = mps.order // 2
-
-    [_, s,
-     _] = linalg.svd(mps.cores[half_chain_index].reshape(mps.ranks[half_chain_index] * mps.row_dims[half_chain_index],
-                                                         mps.ranks[half_chain_index + 1]),
-                     full_matrices=False,
-                     overwrite_a=True,
-                     check_finite=False,
-                     lapack_driver='gesvd')
-
-    return s
-
-
 def compute_entanglement_spectrum(mps: tt.TT) -> np.ndarray:
     half_chain_index = mps.order // 2
     ortho_mps = orthogonalize_mps(mps, half_chain_index)
