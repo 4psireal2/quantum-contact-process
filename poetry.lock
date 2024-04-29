@@ -729,9 +729,9 @@ scipy = ">=1"
 
 [package.source]
 type = "git"
-url = "https://github.com/PGelss/scikit_tt.git#1f681e1"
+url = "https://github.com/PGelss/scikit_tt.git#616ff8b"
 reference = "master"
-resolved_reference = "e9a418df43c980f543e0860f9d4a68ae84b82df5"
+resolved_reference = "616ff8bbd5ab3eac2d748924138edb79ae881328"
 
 [[package]]
 name = "scipy"
@@ -867,4 +867,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.11"
-content-hash = "098e8ea61ba26409cbde03544844c5e61420962052f5d016dd8c6fefb72ae505"
+content-hash = "3f5a8c535cbe6438f248e2d289510246ec4c44867288e94aea58063541849bde"

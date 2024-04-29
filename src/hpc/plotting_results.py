@@ -2,10 +2,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 PATH = "/home/psireal42/study/quantum-contact-process-1D/hpc/results/"
-time_string = "2024_04_24_03_03_18"
+time_string = "2024_04_26_01_02_06"
 
 # system parameters
-L = 25
+L = 10
 GAMMA = 1
 OMEGAS = np.linspace(0, 10, 10)
 
@@ -17,7 +17,7 @@ spectral_gaps = np.loadtxt(PATH + f"spectral_gaps_L_{L}_{time_string}.txt", deli
 n_s = np.loadtxt(PATH + f"n_s_L_{L}_{time_string}.txt", delimiter=',')
 eval_0 = np.loadtxt(PATH + f"eval_0_L_{L}_{time_string}.txt", delimiter=',')
 eval_1 = np.loadtxt(PATH + f"eval_1_L_{L}_{time_string}.txt", delimiter=',')
-# eval_spectrum = np.loadtxt(PATH + f"eval_spectrum_L_{L}_{time_string}.txt", delimiter=',')
+eval_spectrum = np.loadtxt(PATH + f"eval_spectrum_L_{L}_{time_string}.txt", delimiter=',')
 purities = np.loadtxt(PATH + f"purities_L_{L}_{time_string}.txt", delimiter=',')
 correlations = np.loadtxt(PATH + f"correlations_L_{L}_{time_string}.txt", delimiter=',')
 evp_residual = np.loadtxt(PATH + f"evp_residual_L_{L}_{time_string}.txt", delimiter=',')
@@ -55,15 +55,15 @@ plt.tight_layout()
 plt.savefig(PATH + f"eval_1_L_{L}_{time_string}.png")
 
 # plot eigenvalue spectrum
-# plt.figure()
-# for i, omega in enumerate(OMEGAS):
-#     plt.plot(list(range(bond_dims[-1])), eval_spectrum[i, :], 'o-', label=f"$\Omega=${omega}")
-# plt.xlabel(r"$\lambda_i$")
-# plt.legend()
-# plt.title(f"{L=}, $\chi=${bond_dims[-1]}")
-# plt.grid()
-# plt.tight_layout()
-# plt.savefig(PATH + f"eval_spectrum_L_{L}_{time_string}.png")
+plt.figure()
+for i, omega in enumerate(OMEGAS):
+    plt.plot(list(range(bond_dims[-1])), eval_spectrum[i, :], 'o-', label=f"$\Omega=${omega}")
+plt.xlabel(r"$\lambda_i$")
+plt.legend()
+plt.title(f"{L=}, $\chi=${bond_dims[-1]}")
+plt.grid()
+plt.tight_layout()
+plt.savefig(PATH + f"eval_spectrum_L_{L}_{time_string}.png")
 
 # plot stationary densities
 plt.figure()

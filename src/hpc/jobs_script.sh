@@ -52,10 +52,10 @@ timestamp=$(date +'%Y-%m-%d-%H-%M-%S')
 # functions for logging memory usage and time
 log_memory_cpu_usage() {
         while true; do
-                echo -n "$(date +'%Y-%m-%d %H:%M:%S') " >> "$LOG_PATH/usage_log_L_${L}.txt"
+                echo -n "$(date +'%Y-%m-%d %H:%M:%S') " >> "$LOG_PATH/usage_log_L_${L}_${timestamp}.txt"
                 # only include the used and total memory
                 free -h | awk '/^Mem:/ { print $3 "/" $2 }' >> "$LOG_PATH/usage_log_L_${L}.txt"
-                top -bn1 | awk '/^%Cpu/ { print "CPU: " $2 " us, " $4 " sy" }' >> "$LOG_PATH/usage_log_L_${L}.txt"
+                top -bn1 | awk '/^%Cpu/ { print "CPU: " $2 " us, " $4 " sy" }' >> "$LOG_PATH/usage_log_L_${L}_${timestamp}.txt"
                 sleep 900
         done
 }
@@ -65,7 +65,7 @@ log_time() {
         $@
         local end=$(date +%s)
         local runtime=$((end - start))
-        echo "$(date +'%Y-%m-%d %H:%M:%S') Time taken for $@: ${runtime}s" >> "$LOG_PATH/time_log_L_${L}.txt"
+        echo "$(date +'%Y-%m-%d %H:%M:%S') Time taken for $@: ${runtime}s" >> "$LOG_PATH/time_log_L_${L}_${timestamp}.txt"
 }
 
 # activate virtualenv

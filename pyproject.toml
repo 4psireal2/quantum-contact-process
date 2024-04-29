@@ -24,7 +24,7 @@ tqdm = "^4.66"
 matplotlib = "^3.8.2"
 toml = "^0.10.2"
 pytest = "^8.1.1"
-scikit_tt = {git = "https://github.com/PGelss/scikit_tt.git#1f681e1", branch="master"}
+scikit_tt = {git = "https://github.com/PGelss/scikit_tt.git#616ff8b", branch="master"}
 
 
 [tool.poetry.group.dev.dependencies]

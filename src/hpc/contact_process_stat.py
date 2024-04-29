@@ -24,7 +24,6 @@ OMEGAS = np.linspace(0, 10, 10)
 
 # TN algorithm parameters
 bond_dims = np.array([8, 16, 20])
-
 conv_eps = 1e-6
 
 ### Stationary simulation
@@ -40,7 +39,7 @@ correlations = np.zeros((len(OMEGAS), L - 1))
 
 for i, OMEGA in enumerate(OMEGAS):
     for j, bond_dim in enumerate(bond_dims):
-        print(f"Run ALS for {L=}, {OMEGA=} and {bond_dim=}")
+        logger.info(f"Run ALS for {L=}, {OMEGA=} and {bond_dim=}")
         lindblad = construct_lindblad(gamma=GAMMA, omega=OMEGA, L=L)
         lindblad_hermitian = lindblad.transpose(conjugate=True) @ lindblad
 
@@ -50,47 +49,47 @@ for i, OMEGA in enumerate(OMEGAS):
         time1 = time.time()
         eigenvalues, eigentensors, _ = als(lindblad_hermitian, mps, number_ev=2, repeats=10, conv_eps=conv_eps, sigma=0)
         time2 = time.time()
-        print(f"Elapsed time: {time2 - time1} seconds")
+        logger.info(f"Elapsed time: {time2 - time1} seconds")
 
         evp_residual[j, i] = (lindblad_hermitian @ eigentensors[0] - eigenvalues[0] * eigentensors[0]).norm()**2
         eval_0[j, i] = eigenvalues[0]
         eval_1[j, i] = eigenvalues[1]
-        print(f"Eigensolver error: {evp_residual[j, i]}")
+        logger.info(f"Eigensolver error: {evp_residual[j, i]}")
 
-        print(f"Ground state energy per site E: {eigenvalues/L}")
-        print(f"Norm of ground state: {eigentensors[0].norm()**2}")
+        logger.info(f"Ground state energy per site E: {eigenvalues/L}")
+        logger.info(f"Norm of ground state: {eigentensors[0].norm()**2}")
 
         gs_mps = canonicalize_mps(eigentensors[0])
         gs_mps_dag = gs_mps.transpose(conjugate=True)
-        print(f"expVal_0, eigenvalue_0: {compute_expVal(gs_mps, lindblad_hermitian)}, {eigenvalues[0]}")
+        logger.info(f"expVal_0, eigenvalue_0: {compute_expVal(gs_mps, lindblad_hermitian)}, {eigenvalues[0]}")
 
         # compute Hermitian part of mps
         hermit_mps = (1 / 2) * (gs_mps + gs_mps_dag)
 
         # compute non-Hermitian part of mps
         non_hermit_mps = (1 / 2) * (gs_mps - gs_mps_dag)
-        print(f"The norm of the non-Hermitian part: {non_hermit_mps.norm()**2}")
+        logger.info(f"The norm of the non-Hermitian part: {non_hermit_mps.norm()**2}")
 
-        print("Compute particle numbers")
+        logger.info("Compute particle numbers")
         particle_nums = compute_site_expVal_vMPO(hermit_mps, construct_num_op(L))
-        print(f"Particle number/site: {particle_nums}")
+        logger.info(f"Particle number/site: {particle_nums}")
         n_s[j, i] = np.mean(particle_nums)
 
         if bond_dim == bond_dims[-1]:
-            print(f"{bond_dim=}")
-            print("Compute spectral gap of L†L for largest bond dimension")
+            logger.info(f"{bond_dim=}")
+            logger.info("Compute spectral gap of L†L for largest bond dimension")
             spectral_gaps[i] = abs(eigenvalues[1] - eigenvalues[0])
 
-            print("Compute purity of state for largest bond dimension")
+            logger.info("Compute purity of state for largest bond dimension")
             purities[i] = compute_purity(gs_mps)
-            print(f"Purity: {purities[-1]}")
+            logger.info(f"Purity: {purities[-1]}")
 
-            print("Compute half-chain density correlation for largest bond dimension")
+            logger.info("Compute half-chain density correlation for largest bond dimension")
             an_op = construct_num_op(1)
             for k in range(L - 1):
                 correlations[i, k] = abs(compute_correlation_vMPO(gs_mps, an_op, r0=0, r1=k + 1))
 
-            print("Compute half-chain eigenvalue spectrum for largest bond dimension")
+            logger.info("Compute half-chain eigenvalue spectrum for largest bond dimension")
             eval_spectrum[i, :] = compute_eigenvalue_spectrum(eigentensors[0])
 
 time3 = "{:%Y_%m_%d_%H_%M_%S}".format(datetime.now())

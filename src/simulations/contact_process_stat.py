@@ -7,7 +7,7 @@ from scikit_tt.solvers.evp import als
 
 from src.models.contact_process_model import (construct_lindblad, construct_num_op)
 from src.utilities.utils import (canonicalize_mps, compute_correlation_vMPO, compute_purity, compute_site_expVal_vMPO,
-                                 compute_expVal, compute_eigenvalue_spectrum)
+                                 compute_expVal, compute_entanglement_spectrum, construct_basis_mps, compute_overlap)
 
 # path for results
 PATH = "/home/psireal42/study/quantum-contact-process-1D/results/"
@@ -16,7 +16,7 @@ PATH = "/home/psireal42/study/quantum-contact-process-1D/results/"
 L = 10
 GAMMA = 1
 # OMEGAS = np.linspace(0, 10, 10)
-OMEGAS = np.array([3.0])
+OMEGAS = np.array([0.0])
 
 # TN algorithm parameters
 # bond_dims = np.array([8, 16, 20])
@@ -25,12 +25,13 @@ conv_eps = 1e-6
 
 ### Stationary simulation
 print("Stationary simulation")
+d = 2
 spectral_gaps = np.zeros(len(OMEGAS))
 n_s = np.zeros((bond_dims.shape[0], OMEGAS.shape[0]))
 evp_residual = np.zeros((bond_dims.shape[0], OMEGAS.shape[0]))
 eval_0 = np.zeros((bond_dims.shape[0], OMEGAS.shape[0]))
 eval_1 = np.zeros((bond_dims.shape[0], OMEGAS.shape[0]))
-eval_spectrum = np.zeros((OMEGAS.shape[0], bond_dims[-1]))
+entropy_spectrum = np.zeros((OMEGAS.shape[0], bond_dims[-1] * d**2))  # d² * bond_dim
 purities = np.zeros(len(OMEGAS))
 correlations = np.zeros((len(OMEGAS), L - 1))
 
@@ -86,8 +87,13 @@ for i, OMEGA in enumerate(OMEGAS):
             for k in range(L - 1):
                 correlations[i, k] = abs(compute_correlation_vMPO(gs_mps, an_op, r0=0, r1=k + 1))
 
-            print("Compute half-chain eigenvalue spectrum for largest bond dimension")
-            eval_spectrum[i, :] = compute_eigenvalue_spectrum(eigentensors[0])
+            print("Compute half-chain entanglement entropy spectrum for largest bond dimension")
+            entropy_spectrum[i, :] = compute_entanglement_spectrum(gs_mps)
+
+            print("Compute overlap with dark state")
+            basis_0 = np.array([1, 0])
+            dark_state = construct_basis_mps(L, basis=[np.kron(basis_0, basis_0)] * L)
+            print(f"{compute_overlap(dark_state, gs_mps)=}")  #TODO: negative?
 
 time3 = "{:%Y_%m_%d_%H_%M_%S}".format(datetime.now())
 

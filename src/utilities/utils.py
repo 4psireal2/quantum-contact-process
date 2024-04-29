@@ -50,8 +50,7 @@ def canonicalize_mps(mps: tt.TT) -> tt.TT:
     for k in range(mps.order):
         r1 = mps.ranks[k]
         r2 = mps.ranks[k + 1]
-        n = int(np.sqrt(mps.row_dims[k]))
-        cores[k] = mps.cores[k].reshape([r1, n, n, r2])
+        cores[k] = mps.cores[k].reshape([r1, 2, 2, r2])
 
     return tt.TT(cores)
 
@@ -281,3 +280,34 @@ def compute_eigenvalue_spectrum(mps: tt.TT) -> np.ndarray:
                      lapack_driver='gesvd')
 
     return s
+
+
+def compute_entanglement_spectrum(mps: tt.TT) -> np.ndarray:
+    half_chain_index = mps.order // 2
+    ortho_mps = orthogonalize_mps(mps, half_chain_index)
+    two_site_tensor = np.tensordot(ortho_mps.cores[half_chain_index],
+                                   ortho_mps.cores[half_chain_index + 1],
+                                   axes=([3], [0]))
+    r1, r2, r3, r4, r5, r6 = two_site_tensor.shape
+    two_site_matrix = two_site_tensor.reshape(r1 * r2 * r3, r4 * r5 * r6)
+    [_, s, _] = linalg.svd(two_site_matrix,
+                           full_matrices=False,
+                           overwrite_a=True,
+                           check_finite=False,
+                           lapack_driver='gesvd')
+
+    return s
+
+
+def compute_overlap(mps_1: tt.TT, mps_2: tt.TT) -> float:
+
+    left_boundary = np.ones((1, 1))
+    right_boundary = np.ones((1, 1))
+
+    mps_2_dag = mps_2.transpose(conjugate=True)
+    for i in range(mps_1.order):
+
+        contraction = np.tensordot(mps_1.cores[i], mps_2_dag.cores[i], axes=([1, 2], [1, 2]))
+        left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1], [0, 2]))
+
+    return np.trace(left_boundary @ right_boundary).item()
