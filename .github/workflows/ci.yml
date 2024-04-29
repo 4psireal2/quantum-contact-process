@@ -55,6 +55,6 @@ jobs:
         run: |
             echo "PYTHONPATH=$GITHUB_WORKSPACE:\$PYTHONPATH" >> $GITHUB_ENV
       - name: Run all sanity checks
-        run: pytest tests/
+        run: poetry run pytest tests/
 
 
