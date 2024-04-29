@@ -35,7 +35,7 @@ jobs:
       - name: Install dependencies
         run: poetry install
       - name: Check code formatting
-        run: poetry run yapf --diff --recursive .
+        run: poetry run yapf --diff --recursive src/ tests/
   
   test:
     name: Sanity checks
