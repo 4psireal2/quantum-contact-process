@@ -49,11 +49,11 @@ jobs:
       with:
         poetry-version: '1.7.1'
     - name: Install dependencies
-        run: poetry install
+      run: poetry install
     - name: Export PYTHONPATH
-        run: |
+      run: |
           echo "PYTHONPATH=$GITHUB_WORKSPACE:\$PYTHONPATH" >> $GITHUB_ENV
     - name: Run all sanity checks
-        run: pytest tests/
+      run: pytest tests/
 
 
