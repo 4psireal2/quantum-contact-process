@@ -23,23 +23,23 @@ def construct_lindblad(gamma: float, V: float, omega: float, delta: float, L: in
 
     annihilation_op = np.array([[0, 1], [0, 0]])
     creation_op = np.array([[0, 0], [1, 0]])
-    an_op = annihilation_op * creation_op
+    an_op = creation_op * annihilation_op
     an_op_L = np.kron(an_op, identity)
     an_op_R = np.kron(identity, an_op)
 
     # core components
-    S = -1j * (omega / 2) * (sigmax_L + sigmax_R) + 1j * (V - delta) / 2 * (sigmaz_L + sigmaz_R) + gamma * np.kron(
-        creation_op, creation_op) - (1 / 2) * gamma * (an_op_L + an_op_R)
+    S = -1j * (omega / 2) * (sigmax_L - sigmax_R) + 1j * (V - delta) / 2 * (sigmaz_L - sigmaz_R) + gamma * np.kron(
+        annihilation_op, annihilation_op) - (1 / 2) * gamma * (an_op_L + an_op_R)
     L_1 = sigmaz_L
     L_2 = sigmaz_R
     Id = np.eye(4)
     M_1 = -1j * V / 4 * sigmaz_L
-    M_2 = -1j * V / 4 * sigmaz_R
+    M_2 = -1j * V / 4 * -sigmaz_R
 
     # construct core
     op_cores = [None] * L
     op_cores[0] = np.zeros([1, 4, 4, 4], dtype=complex)
-    op_cores[0][0, :, :, 0] = S + -1j * (V / 4) * (sigmaz_L + sigmaz_R)
+    op_cores[0][0, :, :, 0] = S + -1j * (V / 4) * (sigmaz_L - sigmaz_R)
     op_cores[0][0, :, :, 1] = L_1
     op_cores[0][0, :, :, 2] = L_2
     op_cores[0][0, :, :, 3] = Id
@@ -56,7 +56,7 @@ def construct_lindblad(gamma: float, V: float, omega: float, delta: float, L: in
     op_cores[-1][0, :, :, 0] = Id
     op_cores[-1][1, :, :, 0] = M_1
     op_cores[-1][2, :, :, 0] = M_2
-    op_cores[-1][3, :, :, 0] = S + -1j * (V / 4) * (np.kron(identity, sigmaz) + np.kron(sigmaz, identity))
+    op_cores[-1][3, :, :, 0] = S + -1j * (V / 4) * (sigmaz_L - sigmaz_R)
 
     return TT(op_cores)
 
@@ -78,23 +78,23 @@ def construct_lindblad_dag(gamma: float, V: float, omega: float, delta: float, L
 
     annihilation_op = np.array([[0, 1], [0, 0]])
     creation_op = np.array([[0, 0], [1, 0]])
-    an_op = annihilation_op * creation_op
+    an_op = creation_op * annihilation_op
     an_op_L = np.kron(an_op, identity)
     an_op_R = np.kron(identity, an_op)
 
     # core components
-    S = 1j * (omega / 2) * (sigmax_L + sigmax_R) - 1j * (V - delta) / 2 * (sigmaz_L + sigmaz_R) + gamma * np.kron(
-        annihilation_op, annihilation_op) - (1 / 2) * gamma * (an_op_L + an_op_R)
+    S = 1j * (omega / 2) * (sigmax_L - sigmax_R) - 1j * (V - delta) / 2 * (sigmaz_L - sigmaz_R) + gamma * np.kron(
+        creation_op, creation_op) - (1 / 2) * gamma * (an_op_L + an_op_R)
     L_1 = sigmaz_L
     L_2 = sigmaz_R
     Id = np.eye(4)
     M_1 = 1j * V / 4 * sigmaz_L
-    M_2 = 1j * V / 4 * sigmaz_R
+    M_2 = -1j * V / 4 * sigmaz_R
 
     # construct core
     op_cores = [None] * L
     op_cores[0] = np.zeros([1, 4, 4, 4], dtype=complex)
-    op_cores[0][0, :, :, 0] = S + 1j * (V / 4) * (sigmaz_L + sigmaz_R)
+    op_cores[0][0, :, :, 0] = S + 1j * (V / 4) * (sigmaz_L - sigmaz_R)
     op_cores[0][0, :, :, 1] = L_1
     op_cores[0][0, :, :, 2] = L_2
     op_cores[0][0, :, :, 3] = Id
@@ -111,6 +111,6 @@ def construct_lindblad_dag(gamma: float, V: float, omega: float, delta: float, L
     op_cores[-1][0, :, :, 0] = Id
     op_cores[-1][1, :, :, 0] = M_1
     op_cores[-1][2, :, :, 0] = M_2
-    op_cores[-1][3, :, :, 0] = S + 1j * (V / 4) * (np.kron(identity, sigmaz) + np.kron(sigmaz, identity))
+    op_cores[-1][3, :, :, 0] = S + 1j * (V / 4) * (sigmaz_L - sigmaz_R)
 
     return TT(op_cores)

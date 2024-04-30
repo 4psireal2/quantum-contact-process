@@ -45,7 +45,12 @@ export MKL_NUM_THREADS=$SLURM_CPUS_PER_TASK
 export VECLIB_MAXIMUM_THREADS=$SLURM_CPUS_PER_TASK
 export NUMEXPR_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
-L=10
+# # set up environment
+# python3 -m venv /scratch/nguyed99/tensor # create venv
+# pip install -r requirements.txt
+
+
+L=50
 LOG_PATH="/scratch/nguyed99/qcp-1d/logging"
 timestamp=$(date +'%Y-%m-%d-%H-%M-%S')
 
@@ -72,9 +77,9 @@ log_time() {
 source /scratch/nguyed99/tensor/bin/activate
  
 # launch Python script
-log_memory_cpu_usage & log_time
+log_memory_cpu_usage & 
 LOG_PID=$!
 
-python3 contact_process_stat.py > "$LOG_PATH/contact_process_stat_L_${L}_${timestamp}.out"
+log_time python3 contact_process_stat.py > "$LOG_PATH/contact_process_stat_L_${L}_${timestamp}.out"
 
 kill $LOG_PID

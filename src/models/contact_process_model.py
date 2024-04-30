@@ -22,9 +22,9 @@ def construct_lindblad(gamma: float, omega: float, L: int) -> tt.TT:
     L_4 = np.kron(identity, number_op)
     Id = np.eye(4)
     M_1 = -1j * omega * np.kron(number_op, identity)
-    M_2 = -1j * omega * np.kron(identity, number_op)
+    M_2 = 1j * omega * np.kron(identity, number_op)
     M_3 = -1j * omega * np.kron(sigmax, identity)
-    M_4 = -1j * omega * np.kron(identity, sigmax)
+    M_4 = 1j * omega * np.kron(identity, sigmax)
 
     # construct core
     op_cores = [None] * L
@@ -78,9 +78,9 @@ def construct_lindblad_dag(gamma: float, omega: float, L: int) -> tt.TT:
     L_4 = np.kron(identity, number_op)
     Id = np.eye(4)
     M_1 = 1j * omega * np.kron(number_op, identity)
-    M_2 = 1j * omega * np.kron(identity, number_op)
+    M_2 = -1j * omega * np.kron(identity, number_op)
     M_3 = 1j * omega * np.kron(sigmax, identity)
-    M_4 = 1j * omega * np.kron(identity, sigmax)
+    M_4 = -1j * omega * np.kron(identity, sigmax)
 
     # construct core
     op_cores = [None] * L

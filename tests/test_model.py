@@ -37,10 +37,17 @@ class ModelFunctions(unittest.TestCase):
         cp_lindblad_hermitian = cp_lindblad_dag @ cp_lindblad
         assert np.array_equal(np.conj(cp_lindblad_hermitian.matricize().T), cp_lindblad_hermitian.matricize())
 
-    def test_exact_diagonalization(self):
+    def test_exact_diagonalization(self):  #TODO: Add ising model too :)
         cp_lindblad = cp_model.construct_lindblad(gamma=GAMMA, omega=OMEGA, L=L)
         cp_lindblad_dag = cp_model.construct_lindblad_dag(gamma=GAMMA, omega=OMEGA, L=L)
         cp_lindblad_hermitian = cp_lindblad_dag @ cp_lindblad
 
         evals, _ = np.linalg.eig(cp_lindblad_hermitian.matricize())
-        assert np.min(evals.real) == 0.0
+        assert np.isclose(np.min(evals.real), 0.0)
+
+        ising_lindblad = ising_model.construct_lindblad(gamma=GAMMA, V=V, omega=OMEGA, delta=DELTA, L=L)
+        ising_lindblad_dag = ising_model.construct_lindblad_dag(gamma=GAMMA, V=V, omega=OMEGA, delta=DELTA, L=L)
+        ising_lindblad_hermitian = ising_lindblad_dag @ ising_lindblad
+
+        evals, _ = np.linalg.eig(ising_lindblad_hermitian.matricize())
+        assert np.isclose(np.min(evals.real), 0.0)

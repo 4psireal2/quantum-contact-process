@@ -16,11 +16,8 @@
 - Finite system: check for ||Ax - \lambda x|| < eps -> smallest required ranks
 - Thermodynamic limits for critical exponents-> VUMPS?
 - OBSERVATION: convergence for E doesn't require large bond dimensions, but for other observables alr!
-- scikit-tt norm needs to be squared
-- Automate testing pipeline
-- reproducibility test
-- results from time-propagation is strange
-- check for unphysicality of solution [it doesn't make sense to have purity = 0?]
+- Result from time-propagation is strange.
+- Negative values for site expectation value.
 
 ## Technical details 
 Required tools: `poetry`

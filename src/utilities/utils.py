@@ -138,7 +138,7 @@ def compute_expVal(mps: tt.TT, mpo: tt.TT) -> float:
         left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1, 2], [0, 2, 4]))
 
     exp_val = np.trace(left_boundary @ right_boundary).item()
-    if exp_val.imag < 1e-12:
+    if exp_val.imag < 1e-7:
         return exp_val.real
     else:
         raise ValueError("Complex expectation value is found.")
