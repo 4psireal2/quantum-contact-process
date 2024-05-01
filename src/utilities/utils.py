@@ -73,6 +73,8 @@ def compute_purity(mps: tt.TT) -> float:
 
 def compute_site_expVal(mps: tt.TT, mpo: tt.TT) -> np.ndarray:
     """
+    Compute the expectation value < Ψ | onsiteOp | Ψ > for each site of the MPS 
+
     Args:
     - mps: canonicalized mps
     - mpo: cores that have dimension (2,2,2,2)
@@ -96,7 +98,7 @@ def compute_site_expVal(mps: tt.TT, mpo: tt.TT) -> np.ndarray:
 
 def compute_site_expVal_vMPO(mps: tt.TT, mpo: tt.TT) -> np.ndarray:
     """
-    Compute ā = (1/L) *  Σ_k Tr(ρ A_k)
+    Compute Tr(ρ A_k) for each k
     """
 
     site_vals = np.zeros(mps.order, dtype=float)

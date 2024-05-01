@@ -121,7 +121,7 @@ def construct_num_op(L: int) -> tt.TT:
 
     for i in range(L):
         number_op = np.kron(np.array([[0, 0], [0, 1]]), np.eye(2)) + np.kron(np.eye(2), np.array([[0, 0], [0, 1]]))
-        op_cores[i] = np.zeros([2, 2, 2, 2], dtype=complex)
+        # op_cores[i] = np.zeros([2, 2, 2, 2], dtype=complex)
         op_cores[i] = number_op.reshape(2, 2, 2, 2)
 
     return tt.TT(op_cores)

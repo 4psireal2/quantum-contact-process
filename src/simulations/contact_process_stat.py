@@ -68,6 +68,7 @@ for i, OMEGA in enumerate(OMEGAS):
         # compute Hermitian part of mps
         hermit_mps = (1 / 2) * (gs_mps + gs_mps_dag)
 
+        # compute observables
         print("Compute particle numbers")
         particle_nums = compute_site_expVal_vMPO(hermit_mps, construct_num_op(L))
         print(f"Particle number/site: {particle_nums}")
@@ -83,10 +84,11 @@ for i, OMEGA in enumerate(OMEGAS):
             purities[i] = compute_purity(gs_mps)
             print(f"Purity: {purities[-1]}")
 
-            print("Compute half-chain density correlation for largest bond dimension")
+            print("Compute density correlation for largest bond dimension")
             an_op = construct_num_op(1)
             for k in range(L - 1):
-                correlations[i, k] = abs(compute_correlation_vMPO(gs_mps, an_op, r0=0, r1=k + 1))
+                correlations[i, k] = abs(compute_correlation_vMPO(gs_mps, an_op, r0=0,
+                                                                  r1=k + 1))  #NOTE: absolute value or not??
 
             print("Compute half-chain entanglement entropy spectrum for largest bond dimension")
             ent_ent_spectrum[i, :] = compute_entanglement_spectrum(gs_mps)
