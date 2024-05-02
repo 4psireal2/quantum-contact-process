@@ -11,14 +11,13 @@ from src.utilities.utils import (canonicalize_mps, compute_site_expVal)
 # # system parameters
 L = 21
 OMEGA = 6.0
-GAMMA = 1.0
 
 # # dynamics parameter
 step_size = 1
 number_of_steps = 7
 max_rank = 50
 
-lindblad = construct_lindblad(gamma=GAMMA, omega=OMEGA, L=L)
+lindblad = construct_lindblad(gamma=1.0, omega=OMEGA, L=L)
 lindblad_hermitian = lindblad.transpose(conjugate=True) @ lindblad
 num_op = construct_num_op(L)
 mps = tt.unit(L * [4], inds=L // 2 * [0] + [3] + L // 2 * [0])
@@ -33,7 +32,6 @@ t = np.linspace(0, step_size * number_of_steps, number_of_steps + 1)
 particle_num_t = np.zeros((len(t), L))
 
 for i in range(len(t)):
-    print(f"{i=}")
     hermit_mps = deepcopy(mps_t[i])
     hermit_mps = canonicalize_mps(hermit_mps)
     mps_dag = hermit_mps.transpose(conjugate=True)

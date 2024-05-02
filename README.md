@@ -16,8 +16,16 @@
 - Finite system: check for ||Ax - \lambda x|| < eps -> smallest required ranks
 - Thermodynamic limits for critical exponents-> VUMPS?
 - OBSERVATION: convergence for E doesn't require large bond dimensions, but for other observables alr!
-- Result from time-propagation is strange.
-- Negative values for site expectation value.
+- Negative values for site expectation value
+- Simulations for first excited state
+- Reproduce results from 2 Banuls' papers
+- Add TN diagrams to thesis
+- Open issues on TensorKit
+
+## For discussions
+- DMRG for dissipative Ising chain: GS is not dark state
+- Result from time-propagation is strange
+
 
 ## Technical details 
 Required tools: `poetry`

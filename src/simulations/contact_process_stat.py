@@ -15,11 +15,11 @@ PATH = "/home/psireal42/study/quantum-contact-process-1D/results/"
 # system parameters
 L = 10
 # OMEGAS = np.linspace(0, 10, 10)
-OMEGAS = np.array([6.0])
+OMEGAS = np.array([0.0])
 
 # TN algorithm parameters
 # bond_dims = np.array([8, 16, 20])
-bond_dims = np.array([30])
+bond_dims = np.array([8])
 conv_eps = 1e-6
 
 ### Stationary simulation
@@ -84,7 +84,7 @@ for i, OMEGA in enumerate(OMEGAS):
             purities[i] = compute_purity(gs_mps)
             print(f"Purity: {purities[-1]}")
 
-            print("Compute density correlation for largest bond dimension")
+            print("Compute density-density correlation for largest bond dimension")
             an_op = construct_num_op(1)
             for k in range(L - 1):
                 correlations[i, k] = abs(compute_correlation_vMPO(gs_mps, an_op, r0=0,
