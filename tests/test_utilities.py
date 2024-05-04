@@ -61,7 +61,7 @@ class UtilityFunctions(unittest.TestCase):
         # expected arrays of single site expectation values
         site_vals = [2 * np.ones(L), np.ones(L), np.ones(L), np.zeros(L)]
         for i, mps in enumerate(mps_tests):
-            site_expVal = utils.compute_site_expVal_vMPO(mps, num_op_chain)
+            site_expVal = utils.compute_site_expVal(mps, num_op_chain)
             assert np.array_equal(site_expVal, site_vals[i])
 
     def test_purity(self):

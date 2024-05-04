@@ -19,7 +19,7 @@
 #SBATCH --cpus-per-task=24
 
 # memory per CPU in MB (see also --mem) 
-#SBATCH --mem-per-cpu=2048
+#SBATCH --mem-per-cpu=4096
 
 # runtime in HH:MM:SS format (DAYS-HH:MM:SS format)
 #SBATCH --time=0-03:00:00
@@ -59,7 +59,7 @@ log_memory_cpu_usage() {
         while true; do
                 echo -n "$(date +'%Y-%m-%d %H:%M:%S') " >> "$LOG_PATH/usage_log_L_${L}_${timestamp}.txt"
                 # only include the used and total memory
-                free -h | awk '/^Mem:/ { print $3 "/" $2 }' >> "$LOG_PATH/usage_log_L_${L}.txt"
+                free -h | awk '/^Mem:/ { print $3 "/" $2 }' >> "$LOG_PATH/usage_log_L_${L}_${timestamp}.txt"
                 top -bn1 | awk '/^%Cpu/ { print "CPU: " $2 " us, " $4 " sy" }' >> "$LOG_PATH/usage_log_L_${L}_${timestamp}.txt"
                 sleep 900
         done

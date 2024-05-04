@@ -105,7 +105,7 @@ plt.figure()
 for i, OMEGA in enumerate(OMEGAS):
     plt.plot(list(range(1, L)), correlations[i, :], 'o-', label=f"$\Omega=${OMEGA}")
 plt.xlabel("r")
-plt.ylabel(r"$|C^{L/2}_{nn}(r)|$")
+plt.ylabel(r"$|C_{nn}(r)|$")
 plt.legend()
 plt.title(f"{L=}, $\chi=${bond_dims[-1]}")
 plt.grid()

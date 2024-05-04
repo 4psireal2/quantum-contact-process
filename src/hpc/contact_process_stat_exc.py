@@ -1,3 +1,7 @@
+"""
+Do static simulations for first excited state
+"""
+
 import logging
 import numpy as np
 import time
@@ -53,25 +57,25 @@ for i, OMEGA in enumerate(OMEGAS):
         time2 = time.time()
         print(f"Elapsed time: {time2 - time1} seconds")
 
-        evp_residual[j, i] = (lindblad_hermitian @ eigentensors[0] - eigenvalues[0] * eigentensors[0]).norm()**2
+        evp_residual[j, i] = (lindblad_hermitian @ eigentensors[1] - eigenvalues[1] * eigentensors[1]).norm()**2
         eval_0[j, i] = eigenvalues[0]
         eval_1[j, i] = eigenvalues[1]
-        print(f"Eigensolver error: {evp_residual[j, i]}")
+        print(f"Eigensolver error for first excited state: {evp_residual[j, i]}")
 
-        print(f"Ground state energy per site E: {eigenvalues/L}")
-        print(f"Norm of ground state: {eigentensors[0].norm()**2}")
+        print(f"Ground state energy per site E: {eigenvalues[1]/L}")
+        print(f"Norm of first excited state: {eigentensors[1].norm()**2}")
 
-        gs_mps = canonicalize_mps(eigentensors[0])
-        gs_mps_dag = gs_mps.transpose(conjugate=True)
+        mps = canonicalize_mps(eigentensors[1])
+        mps_dag = mps.transpose(conjugate=True)
 
         # compute non-Hermitian part of mps
-        non_hermit_mps = (1 / 2) * (gs_mps - gs_mps_dag)
+        non_hermit_mps = (1 / 2) * (mps - mps_dag)
         print(f"The norm of the non-Hermitian part: {non_hermit_mps.norm()**2}")
 
-        print(f"expVal_0, eigenvalue_0: {compute_expVal(gs_mps, lindblad_hermitian)}, {eigenvalues[0]}")
+        print(f"expVal_1, eigenvalue_1: {compute_expVal(mps, lindblad_hermitian)}, {eigenvalues[1]}")
 
         # compute Hermitian part of mps
-        hermit_mps = (1 / 2) * (gs_mps + gs_mps_dag)
+        hermit_mps = (1 / 2) * (mps + mps_dag)
 
         # compute observables
         print("Compute particle numbers")
@@ -86,34 +90,34 @@ for i, OMEGA in enumerate(OMEGAS):
             spectral_gaps[i] = abs(eigenvalues[1] - eigenvalues[0])
 
             print("Compute purity of state for largest bond dimension")
-            purities[i] = compute_purity(gs_mps)
+            purities[i] = compute_purity(mps)
             print(f"Purity: {purities[-1]}")
 
             print("Compute two-point correlation for largest bond dimension")
             an_op = construct_num_op(1)
             for k in range(L - 1):
-                correlations[i, k] = compute_correlation(gs_mps, an_op, r0=0, r1=k + 1)
+                correlations[i, k] = compute_correlation(mps, an_op, r0=0, r1=k + 1)
 
             print("Compute density-density correlation for largest bond dimension")
             for k in range(L - 1):
-                dens_dens_corr[i, k] = compute_dens_dens_corr(gs_mps, an_op, r=k + 1)
+                dens_dens_corr[i, k] = compute_dens_dens_corr(mps, an_op, r=k + 1)
 
             print("Compute half-chain entanglement spectrum for largest bond dimension")
-            entanglement_spectrum[i, :] = compute_entanglement_spectrum(gs_mps)
+            entanglement_spectrum[i, :] = compute_entanglement_spectrum(mps)
 
             basis_0 = np.array([1, 0])
             dark_state = construct_basis_mps(L, basis=[np.kron(basis_0, basis_0)] * L)
-            print(f"Overlap with dark state: {compute_overlap(dark_state, gs_mps)}")  #NOTE: negative?
+            print(f"Overlap with dark state: {compute_overlap(dark_state, mps)}")  #NOTE: negative?
 
 time3 = "{:%Y_%m_%d_%H_%M_%S}".format(datetime.now())
 
 # save result arrays
-np.savetxt(PATH + f"eval_0_L_{L}_{time3}.txt", eval_0, delimiter=',')
-np.savetxt(PATH + f"eval_1_L_{L}_{time3}.txt", eval_1, delimiter=',')
-np.savetxt(PATH + f"evp_residual_L_{L}_{time3}.txt", evp_residual, delimiter=',')
-np.savetxt(PATH + f"spectral_gaps_L_{L}_{time3}.txt", spectral_gaps, delimiter=',')
-np.savetxt(PATH + f"n_s_L_{L}_{time3}.txt", n_s, delimiter=',')
-np.savetxt(PATH + f"entanglement_spectrum_L_{L}_{time3}.txt", entanglement_spectrum, delimiter=',')
-np.savetxt(PATH + f"purities_L_{L}_{time3}.txt", purities, delimiter=',')
-np.savetxt(PATH + f"correlations_L_{L}_{time3}.txt", correlations, delimiter=',')
-np.savetxt(PATH + f"dens_dens_corr_L_{L}_{time3}.txt", dens_dens_corr, delimiter=',')
+np.savetxt(PATH + f"eval_0_exc_L_{L}_{time3}.txt", eval_0, delimiter=',')
+np.savetxt(PATH + f"eval_1_exc_L_{L}_{time3}.txt", eval_1, delimiter=',')
+np.savetxt(PATH + f"evp_residual_exc_L_{L}_{time3}.txt", evp_residual, delimiter=',')
+np.savetxt(PATH + f"spectral_gaps_exc_L_{L}_{time3}.txt", spectral_gaps, delimiter=',')
+np.savetxt(PATH + f"n_s_L_exc_{L}_{time3}.txt", n_s, delimiter=',')
+np.savetxt(PATH + f"entanglement_spectrum_exc_L_{L}_{time3}.txt", entanglement_spectrum, delimiter=',')
+np.savetxt(PATH + f"purities_exc_L_{L}_{time3}.txt", purities, delimiter=',')
+np.savetxt(PATH + f"correlations_exc_L_{L}_{time3}.txt", correlations, delimiter=',')
+np.savetxt(PATH + f"dens_dens_corr_exc_L_{L}_{time3}.txt", dens_dens_corr, delimiter=',')
