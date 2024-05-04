@@ -13,7 +13,7 @@ import src.models.diss_ising_model as diss_ising_model
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-L = 3
+L = 5
 GAMMA = 1.0
 OMEGA = 1.5
 V = 5.0
@@ -44,18 +44,10 @@ class ModelFunctions(unittest.TestCase):
 
         evals, _ = np.linalg.eig(cp_lindblad_hermitian.matricize())
         assert np.isclose(np.min(evals.real), 0.0)
-        # test dark state
 
         ising_lindblad = diss_ising_model.construct_lindblad(gamma=GAMMA, V=V, omega=OMEGA, delta=DELTA, L=L)
         ising_lindblad_dag = diss_ising_model.construct_lindblad_dag(gamma=GAMMA, V=V, omega=OMEGA, delta=DELTA, L=L)
         ising_lindblad_hermitian = ising_lindblad_dag @ ising_lindblad
 
-        evals, evecs = np.linalg.eig(ising_lindblad_hermitian.matricize())
+        evals, _ = np.linalg.eig(ising_lindblad_hermitian.matricize())
         assert np.isclose(np.min(evals.real), 0.0)
-
-        # test dark state
-        basis_0 = np.array([1, 0])
-
-        dark_state = np.kron(np.kron(basis_0, basis_0), basis_0)
-        print(f"{dark_state.shape}=")
-        print(f"{evecs.shape=}")

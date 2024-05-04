@@ -4,7 +4,7 @@ For 1D dissipative Ising chain. See Ref: 10.1103/PhysRevLett.114.220601
 
 import numpy as np
 import scikit_tt.tensor_train as tt
-from src.utilities.utils import compute_correlation_vMPO
+from src.utilities.utils import compute_correlation
 
 
 def construct_lindblad(gamma: float, V: float, omega: float, delta: float, L: int) -> tt.TT:
@@ -128,7 +128,7 @@ def commpute_half_chain_corr(mps: tt.TT) -> np.ndarray:
     an_op.cores[0] = an_op.cores[0].reshape(2, 2, 2, 2)
 
     for i in range(r0 + 1, L):
-        corr.append(abs(compute_correlation_vMPO(mps, an_op, r0=r0, r1=i)))
+        corr.append(abs(compute_correlation(mps, an_op, r0=r0, r1=i)))
     return np.array(corr)
 
 
