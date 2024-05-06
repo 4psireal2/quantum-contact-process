@@ -77,20 +77,20 @@ def compute_site_expVal(mps: tt.TT, mpo: tt.TT) -> np.ndarray:
     site_vals = np.zeros(mps.order, dtype=float)
 
     for i in range(mps.order):
-        left_boundary = np.ones(1)
-        right_boundary = np.ones(1)
+        left_boundary = np.ones((1, 1))
+        right_boundary = np.ones((1, 1))
 
         for j in range(mps.order):
+
             if j == i:
-                contraction = np.tensordot(mps.cores[j], mpo.cores[0], axes=([1, 2], [0, 1]))
-                contraction = np.einsum('ijlk->ij', contraction)  # tracing over the physical indices
+                contraction = np.tensordot(mps.cores[j], mpo.cores[0], axes=([1, 2], [2, 1]))
             else:
-                contraction = np.einsum('ikjl->il', mps.cores[j])  # tracing over the physical indices
+                contraction = np.tensordot(mps.cores[j], np.eye(2).reshape(1, 2, 2, 1), axes=([1, 2], [2, 1]))
 
-            left_boundary = np.tensordot(left_boundary, contraction, axes=([0], [0]))
+            left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1], [0, 2]))
 
-        if (left_boundary @ right_boundary).imag < 1e-12:
-            site_vals[i] = (left_boundary @ right_boundary).real
+        if (left_boundary @ right_boundary).item().imag < 1e-12:
+            site_vals[i] = (left_boundary @ right_boundary).item().real
         else:
             raise ValueError("Complex expectation value is found.")
 
@@ -129,50 +129,49 @@ def compute_correlation(mps: tt.TT, mpo: tt.TT, r0: int, r1: int) -> float:
     - r0, r1: first, second index of sites on the TT 
     """
 
-    left_boundary = np.ones(1)
-    right_boundary = np.ones(1)
+    left_boundary = np.ones((1, 1))
+    right_boundary = np.ones((1, 1))
 
     # compute <O_{r0} . O_{r1}>
-    for i in range(mps.order):
-        if i != r0 and i != r1:
-            contraction = np.einsum('ikjl->il', mps.cores[i])
+    for j in range(mps.order):
+        if j != r0 and j != r1:
+            contraction = np.tensordot(mps.cores[j], np.eye(2).reshape(1, 2, 2, 1), axes=([1, 2], [2, 1]))
         else:
-            contraction = np.tensordot(mps.cores[i], mpo.cores[0], axes=([1, 2], [0, 1]))
-            contraction = np.einsum('ijlk->ij', contraction)  # tracing over the physical indices
-        left_boundary = np.tensordot(left_boundary, contraction, axes=([0], [0]))
+            contraction = np.tensordot(mps.cores[j], mpo.cores[0], axes=([1, 2], [2, 1]))
 
-    mean_product = left_boundary @ right_boundary
+        left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1], [0, 2]))
+
+    mean_product = (left_boundary @ right_boundary).item()
 
     # compute <O_{r0}><O_{r1}>
     # compute <O_{r0}>
-    left_boundary = np.ones(1)
-    right_boundary = np.ones(1)
+
+    left_boundary = np.ones((1, 1))
+    right_boundary = np.ones((1, 1))
 
     for j in range(mps.order):
         if j == r0:
-            contraction = np.tensordot(mps.cores[j], mpo.cores[0], axes=([1, 2], [0, 1]))
-            contraction = np.einsum('ijlk->ij', contraction)  # tracing over the physical indices
+            contraction = np.tensordot(mps.cores[j], mpo.cores[0], axes=([1, 2], [2, 1]))
         else:
-            contraction = np.einsum('ikjl->il', mps.cores[j])  # tracing over the physical indices
+            contraction = np.tensordot(mps.cores[j], np.eye(2).reshape(1, 2, 2, 1), axes=([1, 2], [2, 1]))
 
-        left_boundary = np.tensordot(left_boundary, contraction, axes=([0], [0]))
+        left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1], [0, 2]))
 
-    product_mean = left_boundary @ right_boundary
+    product_mean = (left_boundary @ right_boundary).item()
 
     # compute <O_{r1}>
-    left_boundary = np.ones(1)
-    right_boundary = np.ones(1)
+    left_boundary = np.ones((1, 1))
+    right_boundary = np.ones((1, 1))
 
     for j in range(mps.order):
         if j == r1:
-            contraction = np.tensordot(mps.cores[j], mpo.cores[0], axes=([1, 2], [0, 1]))
-            contraction = np.einsum('ijlk->ij', contraction)  # tracing over the physical indices
+            contraction = np.tensordot(mps.cores[j], mpo.cores[0], axes=([1, 2], [2, 1]))
         else:
-            contraction = np.einsum('ikjl->il', mps.cores[j])  # tracing over the physical indices
+            contraction = np.tensordot(mps.cores[j], np.eye(2).reshape(1, 2, 2, 1), axes=([1, 2], [2, 1]))
 
-        left_boundary = np.tensordot(left_boundary, contraction, axes=([0], [0]))
+        left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1], [0, 2]))
 
-    product_mean *= left_boundary @ right_boundary
+    product_mean *= (left_boundary @ right_boundary).item()
 
     return mean_product - product_mean
 
@@ -186,34 +185,33 @@ def compute_dens_dens_corr(mps: tt.TT, mpo: tt.TT, r: int) -> float:
     - mpo: 1 core with shape (2,2,2,2)
     """
 
-    left_boundary = np.ones(1)
-    right_boundary = np.ones(1)
+    left_boundary = np.ones((1, 1))
+    right_boundary = np.ones((1, 1))
 
-    # compute <O_{r0} . O_{r1}>
-    for i in range(mps.order):
-        if i != 0 and i != r:
-            contraction = np.einsum('ikjl->il', mps.cores[i])
+    # compute <O_{0} . O_{r}>
+    for j in range(mps.order):
+        if j != 0 and j != r:
+            contraction = np.tensordot(mps.cores[j], np.eye(2).reshape(1, 2, 2, 1), axes=([1, 2], [2, 1]))
         else:
-            contraction = np.tensordot(mps.cores[i], mpo.cores[0], axes=([1, 2], [0, 1]))
-            contraction = np.einsum('ijlk->ij', contraction)  # tracing over the physical indices
-        left_boundary = np.tensordot(left_boundary, contraction, axes=([0], [0]))
+            contraction = np.tensordot(mps.cores[j], mpo.cores[0], axes=([1, 2], [2, 1]))
 
-    mean_product = left_boundary @ right_boundary
+        left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1], [0, 2]))
+
+    mean_product = (left_boundary @ right_boundary).item()
 
     # compute <O_{0}>²
-    left_boundary = np.ones(1)
-    right_boundary = np.ones(1)
+    left_boundary = np.ones((1, 1))
+    right_boundary = np.ones((1, 1))
 
     for j in range(mps.order):
         if j == 0:
-            contraction = np.tensordot(mps.cores[j], mpo.cores[0], axes=([1, 2], [0, 1]))
-            contraction = np.einsum('ijlk->ij', contraction)  # tracing over the physical indices
+            contraction = np.tensordot(mps.cores[j], mpo.cores[0], axes=([1, 2], [2, 1]))
         else:
-            contraction = np.einsum('ikjl->il', mps.cores[j])  # tracing over the physical indices
+            contraction = np.tensordot(mps.cores[j], np.eye(2).reshape(1, 2, 2, 1), axes=([1, 2], [2, 1]))
 
-        left_boundary = np.tensordot(left_boundary, contraction, axes=([0], [0]))
+        left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1], [0, 2]))
 
-    product_mean = (left_boundary @ right_boundary)**2
+    product_mean = ((left_boundary @ right_boundary).item())**2
     return mean_product - product_mean
 
 

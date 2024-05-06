@@ -5,7 +5,7 @@ from datetime import datetime
 import scikit_tt.tensor_train as tt
 from scikit_tt.solvers.evp import als
 
-from src.models.contact_process_model import (construct_lindblad, construct_num_op)
+from src.models.contact_process_model import (construct_lindblad)
 from src.utilities.utils import (canonicalize_mps, compute_correlation, compute_dens_dens_corr, compute_purity,
                                  compute_site_expVal, compute_expVal, compute_entanglement_spectrum,
                                  construct_basis_mps, compute_overlap)
@@ -35,6 +35,12 @@ entanglement_spectrum = np.zeros((OMEGAS.shape[0], bond_dims[-1] * d**2))  # d²
 purities = np.zeros(len(OMEGAS))
 correlations = np.zeros((len(OMEGAS), L - 1))
 dens_dens_corr = np.zeros((len(OMEGAS), L - 1))
+
+### observable operator
+number_op = np.array([[0, 0], [0, 1]])
+number_op.reshape((1, 2, 2, 1))
+number_mpo = [None]
+number_mpo = tt.TT(number_op)
 
 for i, OMEGA in enumerate(OMEGAS):
     for j, bond_dim in enumerate(bond_dims):
@@ -72,7 +78,7 @@ for i, OMEGA in enumerate(OMEGAS):
 
         # compute observables
         print("Compute particle numbers")
-        particle_nums = compute_site_expVal(hermit_mps, construct_num_op(L))
+        particle_nums = compute_site_expVal(hermit_mps, number_mpo)
         print(f"Particle number/site: {particle_nums}")
         n_s[j, i] = np.mean(particle_nums)
         print(f"Mean Particle number: {n_s[j, i]}")
@@ -87,19 +93,18 @@ for i, OMEGA in enumerate(OMEGAS):
             print(f"Purity: {purities[-1]}")
 
             print("Compute two-point correlation for largest bond dimension")
-            an_op = construct_num_op(1)
             for k in range(L - 1):
-                correlations[i, k] = compute_correlation(gs_mps, an_op, r0=0, r1=k + 1)
+                correlations[i, k] = compute_correlation(gs_mps, number_mpo, r0=0, r1=k + 1)
 
             print("Compute density-density correlation for largest bond dimension")
             for k in range(L - 1):
-                dens_dens_corr[i, k] = compute_dens_dens_corr(gs_mps, an_op, r=k + 1)
+                dens_dens_corr[i, k] = compute_dens_dens_corr(gs_mps, number_mpo, r=k + 1)
 
             print("Compute half-chain entanglement spectrum for largest bond dimension")
             entanglement_spectrum[i, :] = compute_entanglement_spectrum(gs_mps)
 
             basis_0 = np.array([1, 0])
-            dark_state = construct_basis_mps(L, basis=[np.kron(basis_0, basis_0)] * L)
+            dark_state = construct_basis_mps(L, basis=[np.outer(basis_0, basis_0)] * L)
             print(f"Overlap with dark state: {compute_overlap(dark_state, gs_mps)}")  #NOTE: negative?
 
 time3 = "{:%Y_%m_%d_%H_%M_%S}".format(datetime.now())

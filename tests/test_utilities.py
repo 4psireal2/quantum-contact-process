@@ -10,7 +10,6 @@ import numpy as np
 import scikit_tt.tensor_train as tt
 
 import src.utilities.utils as utils
-import src.models.contact_process_model as model
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -51,18 +50,21 @@ class UtilityFunctions(unittest.TestCase):
 
     def test_num_op(self):
         mps_tests = [
-            utils.construct_basis_mps(L, basis=[np.kron(basis_1, basis_1)] * L),
-            utils.construct_basis_mps(L, basis=[np.kron(basis_1, basis_0)] * L),
-            utils.construct_basis_mps(L, basis=[np.kron(basis_0, basis_1)] * L),
-            utils.construct_basis_mps(L, basis=[np.kron(basis_0, basis_0)] * L)
+            utils.construct_basis_mps(L, basis=[np.outer(basis_1, basis_1)] * L),
+            utils.construct_basis_mps(L, basis=[np.outer(basis_1, basis_0)] * L),
+            utils.construct_basis_mps(L, basis=[np.outer(basis_0, basis_1)] * L),
+            utils.construct_basis_mps(L, basis=[np.outer(basis_0, basis_0)] * L)
         ]
-        num_op_chain = model.construct_num_op(L)
+        number_op = np.array([[0, 0], [0, 1]])
+        number_op.reshape((1, 2, 2, 1))
+        number_mpo = [None]
+        number_mpo = tt.TT(number_op)
 
         # expected arrays of single site expectation values
-        site_vals = [2 * np.ones(L), np.ones(L), np.ones(L), np.zeros(L)]
-        for i, mps in enumerate(mps_tests):
-            site_expVal = utils.compute_site_expVal(mps, num_op_chain)
-            assert np.array_equal(site_expVal, site_vals[i])
+        site_vals = [np.ones(L), np.zeros(L), np.zeros(L), np.zeros(L)]
+        for k, mps in enumerate(mps_tests):
+            site_expVal = utils.compute_site_expVal(mps, number_mpo)
+            assert np.array_equal(site_expVal, site_vals[k])
 
     def test_purity(self):
         mps_1 = utils.construct_basis_mps(L, basis=[np.kron(basis_1, basis_1)] * L)

@@ -75,11 +75,11 @@ log_time() {
 
 # activate virtualenv
 source /scratch/nguyed99/tensor/bin/activate
- 
-# launch Python script
+
+ # launch Python script
 log_memory_cpu_usage & 
 LOG_PID=$!
 
-log_time python3 contact_process_stat.py > "$LOG_PATH/contact_process_stat_L_${L}_${timestamp}.out"
+log_time python3 contact_process_stat_exc.py > "$LOG_PATH/contact_process_stat_exc_L_${L}_${timestamp}.out"
 
 kill $LOG_PID
