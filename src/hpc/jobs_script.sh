@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # job name, will show up in squeue output
-#SBATCH --job-name=jobName
+#SBATCH --job-name=cp-stat-exc
 
 # mail to which notifications will be sent 
 #SBATCH --mail-user=nguyed99@zedat.fu-berlin.de
@@ -22,13 +22,16 @@
 #SBATCH --mem-per-cpu=4096
 
 # runtime in HH:MM:SS format (DAYS-HH:MM:SS format)
-#SBATCH --time=0-03:00:00
+#SBATCH --time=3-00:00:00
 
 # file to which standard output will be written (%A --> jobID, %a --> arrayID)
-#SBATCH --output=logFiles/simulationName_%A_%a_$(date +\%d\%m\%y\%H\%M).out
+#SBATCH --output=/scratch/nguyed99/qcp-1d/logging/cp_stat_exc_%A_%a.out
 
 # file to which standard errors will be written (%A --> jobID, %a --> arrayID)
-#SBATCH --error=logFiles/simulationName_%A_%a_$(date +\%d\%m\%y\%H\%M).err
+#SBATCH --error=/scratch/nguyed99/qcp-1d/logging/cp_stat_exc_%A_%a.err
+
+# job arrays
+#SBATCH --array=0-19
 
 # select partition
 #SBATCH --partition=main
@@ -36,8 +39,23 @@
 # set specific queue/nodes
 # SBATCH --reservation=bqa
 
+# simulation parameter
+L=50
+OMEGAS=(0.5 1.5 2.5 3.5 4.5 5.5 6.5 7.5 8.5 9.5)
+BOND_DIMS=(35 50)
+OMEGA_INDEX=$((SLURM_ARRAY_TASK_ID / 2))
+BOND_DIM_INDEX=$((SLURM_ARRAY_TASK_ID % 2))
+OMEGA=${OMEGAS[OMEGA_INDEX]}
+BOND_DIM=${BOND_DIMS[BOND_DIM_INDEX]}
+
+# paths and file names
+timestamp=$(date +'%Y-%m-%d-%H-%M-%S')
+LOG_PATH="/scratch/nguyed99/qcp-1d/logging"
+
 # store job info in output file, if you want...
 scontrol show job $SLURM_JOBID
+echo "slurm task ID = $SLURM_ARRAY_TASK_ID"
+echo $OMEGA $BOND_DIM
 
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 export OPENBLAS_NUM_THREADS=$SLURM_CPUS_PER_TASK
@@ -49,37 +67,9 @@ export NUMEXPR_NUM_THREADS=$SLURM_CPUS_PER_TASK
 # python3 -m venv /scratch/nguyed99/tensor # create venv
 # pip install -r requirements.txt
 
-
-L=50
-LOG_PATH="/scratch/nguyed99/qcp-1d/logging"
-timestamp=$(date +'%Y-%m-%d-%H-%M-%S')
-
-# functions for logging memory usage and time
-log_memory_cpu_usage() {
-        while true; do
-                echo -n "$(date +'%Y-%m-%d %H:%M:%S') " >> "$LOG_PATH/usage_log_L_${L}_${timestamp}.txt"
-                # only include the used and total memory
-                free -h | awk '/^Mem:/ { print $3 "/" $2 }' >> "$LOG_PATH/usage_log_L_${L}_${timestamp}.txt"
-                top -bn1 | awk '/^%Cpu/ { print "CPU: " $2 " us, " $4 " sy" }' >> "$LOG_PATH/usage_log_L_${L}_${timestamp}.txt"
-                sleep 900
-        done
-}
-
-log_time() {
-        local start=$(date +%s)
-        $@
-        local end=$(date +%s)
-        local runtime=$((end - start))
-        echo "$(date +'%Y-%m-%d %H:%M:%S') Time taken for $@: ${runtime}s" >> "$LOG_PATH/time_log_L_${L}_${timestamp}.txt"
-}
-
 # activate virtualenv
 source /scratch/nguyed99/tensor/bin/activate
 
- # launch Python script
-log_memory_cpu_usage & 
-LOG_PID=$!
-
-log_time python3 contact_process_stat_exc.py > "$LOG_PATH/contact_process_stat_exc_L_${L}_${timestamp}.out"
-
-kill $LOG_PID
+export PYTHONPATH=$PYTHONPATH:/scratch/nguyed99/qcp-1d
+echo "Output log" >> "$LOG_PATH/${timestamp}.log"
+python3 contact_process_stat_exc.py $OMEGA $BOND_DIM $SLURM_ARRAY_JOB_ID 2>&1 | awk -v task_id=$SLURM_ARRAY_TASK_ID '{print "array task " task_id, $0}' >> "$LOG_PATH/${timestamp}.log"
