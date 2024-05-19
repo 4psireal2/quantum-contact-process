@@ -24,18 +24,19 @@ def construct_lindblad(gamma: float, V: float, omega: float, delta: float, L: in
 
     annihilation_op = np.array([[0, 1], [0, 0]])
     creation_op = np.array([[0, 0], [1, 0]])
-    an_op = creation_op * annihilation_op
+    an_op = annihilation_op @ creation_op
+
     an_op_L = np.kron(an_op, identity)
     an_op_R = np.kron(identity, an_op)
 
     # core components
     S = -1j * (omega / 2) * (sigmax_L - sigmax_R) + 1j * (V - delta) / 2 * (sigmaz_L - sigmaz_R) + gamma * np.kron(
-        annihilation_op, annihilation_op) - (1 / 2) * gamma * (an_op_L + an_op_R)
-    L_1 = sigmaz_L
-    L_2 = sigmaz_R
+        creation_op, creation_op) - (1 / 2) * gamma * (an_op_L + an_op_R)
+    L_1 = sigmaz_R
+    L_2 = sigmaz_L
     Id = np.eye(4)
-    M_1 = -1j * V / 4 * sigmaz_L
-    M_2 = -1j * V / 4 * -sigmaz_R
+    M_1 = 1j * V / 4 * sigmaz_R
+    M_2 = -1j * V / 4 * sigmaz_L
 
     # construct core
     op_cores = [None] * L
@@ -79,18 +80,19 @@ def construct_lindblad_dag(gamma: float, V: float, omega: float, delta: float, L
 
     annihilation_op = np.array([[0, 1], [0, 0]])
     creation_op = np.array([[0, 0], [1, 0]])
-    an_op = creation_op * annihilation_op
+    an_op = annihilation_op @ creation_op
+
     an_op_L = np.kron(an_op, identity)
     an_op_R = np.kron(identity, an_op)
 
     # core components
     S = 1j * (omega / 2) * (sigmax_L - sigmax_R) - 1j * (V - delta) / 2 * (sigmaz_L - sigmaz_R) + gamma * np.kron(
-        creation_op, creation_op) - (1 / 2) * gamma * (an_op_L + an_op_R)
-    L_1 = sigmaz_L
-    L_2 = sigmaz_R
+        annihilation_op, annihilation_op) - (1 / 2) * gamma * (an_op_L + an_op_R)
+    L_1 = sigmaz_R
+    L_2 = sigmaz_L
     Id = np.eye(4)
-    M_1 = 1j * V / 4 * sigmaz_L
-    M_2 = -1j * V / 4 * sigmaz_R
+    M_1 = -1j * V / 4 * sigmaz_R
+    M_2 = 1j * V / 4 * sigmaz_L
 
     # construct core
     op_cores = [None] * L
@@ -123,43 +125,70 @@ def commpute_half_chain_corr(mps: tt.TT) -> np.ndarray:
     corr = []
 
     sigmaz = 0.5 * np.array([[1, 0], [0, -1]])
-    sigmaz = np.kron(sigmaz, np.eye(2)) + np.kron(np.eye(2), sigmaz)
     an_op = tt.TT(sigmaz)
-    an_op.cores[0] = an_op.cores[0].reshape(2, 2, 2, 2)
+    an_op.cores[0] = an_op.cores[0].reshape(1, 2, 2, 1)
 
     for i in range(r0 + 1, L):
         corr.append(abs(compute_correlation(mps, an_op, r0=r0, r1=i)))
     return np.array(corr)
 
 
-def compute_staggered_mag(mps: tt.TT) -> float:
+def compute_staggered_mag_1(mps: tt.TT) -> float:
 
     sigmaz = 0.5 * np.array([[1, 0], [0, -1]])
-    sigmaz = np.kron(sigmaz, np.eye(2)) + np.kron(np.eye(2), sigmaz)
-    an_op = tt.TT(sigmaz)
-    an_op.cores[0] = an_op.cores[0].reshape(2, 2, 2, 2)
-
-    staggered_mag = np.tensordot(an_op.cores[0], an_op.cores[0], axes=([2, 3], [0, 1]))
-    staggered_mag = tt.TT(staggered_mag)
-    staggered_mag.cores[0] = staggered_mag.cores[0].reshape(2, 2, 2, 2)
+    sigmaz_sq = sigmaz @ sigmaz
+    staggered_mag = tt.TT(sigmaz_sq)
+    staggered_mag.cores[0] = staggered_mag.cores[0].reshape(1, 2, 2, 1)
 
     site_vals = np.zeros(mps.order, dtype=float)
     for i in range(mps.order):
-        left_boundary = np.ones(1)
-        right_boundary = np.ones(1)
+        left_boundary = np.ones((1, 1))
+        right_boundary = np.ones((1, 1))
 
         for j in range(mps.order):
             if j == i:
-                contraction = np.tensordot(mps.cores[j], staggered_mag.cores[0], axes=([1, 2], [0, 1]))
-                contraction = np.einsum('ijlk->ij', contraction)  # tracing over the physical indices
+                contraction = np.tensordot(mps.cores[j], staggered_mag.cores[0], axes=([1, 2], [2, 1]))
             else:
-                contraction = np.einsum('ikjl->il', mps.cores[j])  # tracing over the physical indices
+                contraction = np.tensordot(mps.cores[j], np.eye(2).reshape(1, 2, 2, 1), axes=([1, 2], [2, 1]))
 
-            left_boundary = np.tensordot(left_boundary, contraction, axes=([0], [0]))
+            left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1], [0, 2]))
 
-        if (left_boundary @ right_boundary).imag < 1e-12:
-            site_vals[i] = (-1)**(i + 1) * (left_boundary @ right_boundary).real
+        if (left_boundary @ right_boundary).item().imag < 1e-12:
+            site_vals[i] = (-1)**(i + 1) * (left_boundary @ right_boundary).item().real
         else:
             raise ValueError("Complex expectation value is found.")
 
     return np.sqrt(np.mean(site_vals))
+
+
+def compute_staggered_mag_2(mps: tt.TT) -> float:
+
+    sigmaz = 0.5 * np.array([[1, 0], [0, -1]])
+    staggered_mag = tt.TT(sigmaz)
+    staggered_mag.cores[0] = staggered_mag.cores[0].reshape(1, 2, 2, 1)
+
+    left_boundary = np.ones((1, 1, 1))
+    right_boundary = np.ones((1, 1, 1))
+
+    site_vals = []
+    for i in range(mps.order):
+        for j in range(i, mps.order):
+            for k in range(mps.order):
+                if k == i == j:
+                    contraction = np.tensordot(staggered_mag.cores[0], staggered_mag.cores[0], axes=([1], [2]))
+                elif k != i and j != j:
+                    contraction = np.tensordot(np.eye(2).reshape(1, 2, 2, 1),
+                                               np.eye(2).reshape(1, 2, 2, 1),
+                                               axes=([1], [2]))
+                else:
+                    contraction = np.tensordot(staggered_mag.cores[0], np.eye(2).reshape(1, 2, 2, 1), axes=([1], [2]))
+
+                contraction = np.tensordot(mps.cores[k], contraction, axes=([1, 2], [1, 4]))
+
+                left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1, 2], [0, 2, 4]))
+
+            if (left_boundary @ right_boundary).item().imag < 1e-12:
+                site_vals.append((-1)**(i + j) * (left_boundary @ right_boundary).item().real)
+            else:
+                raise ValueError("Complex expectation value is found.")
+    return np.sqrt((1 / (mps.order)**2) * 2 * np.sum(site_vals))

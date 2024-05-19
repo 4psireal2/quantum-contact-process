@@ -1,8 +1,7 @@
 import scikit_tt.tensor_train as tt
 from scikit_tt.solvers.evp import als
 
-from models.diss_ising_model import construct_lindblad, construct_lindblad_dag
-
+from src.models.diss_ising_model import construct_lindblad, construct_lindblad_dag
 # path for results
 # PATH = "/home/psireal42/study/quantum-contact-process-1D/results"
 
@@ -10,7 +9,7 @@ from models.diss_ising_model import construct_lindblad, construct_lindblad_dag
 GAMMA = 1.0
 OMEGA = 1.5
 V = 5
-DELTAS = [0.0]
+DELTAS = [-4.0]
 
 # TN algorithm parameters
 conv_eps = 1e-6
@@ -24,7 +23,12 @@ for DELTA in DELTAS:
     lindblad = construct_lindblad(gamma=GAMMA, V=V, omega=OMEGA, delta=DELTA, L=L)
     lindblad_hermitian = construct_lindblad_dag(gamma=GAMMA, V=V, omega=OMEGA, delta=DELTA, L=L) @ lindblad
 
-    mps = tt.ones(row_dims=L * [4], col_dims=L * [1], ranks=bond_dim)
+    # mps = [None]*L
+    # for i in range(L):
+    #     mps[i] = np.eye(2)
+    # mps = t
+
+    mps = tt.rand(row_dims=L * [4], col_dims=L * [1], ranks=bond_dim)
     mps = mps.ortho()
     mps = (1 / mps.norm()**2) * mps
     eigenvalues, eigentensors, _ = als(lindblad_hermitian, mps, number_ev=1, repeats=10, conv_eps=conv_eps, sigma=0)

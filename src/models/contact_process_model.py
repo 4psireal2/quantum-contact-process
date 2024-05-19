@@ -14,8 +14,8 @@ def construct_lindblad(gamma: float, omega: float, L: int) -> tt.TT:
     number_op = np.array([[0, 0], [0, 1]])
 
     # core components
-    S = gamma * np.kron(annihilation_op,
-                        annihilation_op) - 0.5 * (np.kron(number_op, identity) + np.kron(identity, number_op))
+    S = gamma * np.kron(annihilation_op, annihilation_op) - 0.5 * (
+        np.kron(number_op, identity) + np.kron(identity, number_op))  # on-site
     L_1 = np.kron(sigmax, identity)
     L_2 = np.kron(identity, sigmax)
     L_3 = np.kron(number_op, identity)

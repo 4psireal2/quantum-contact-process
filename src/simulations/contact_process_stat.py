@@ -17,7 +17,7 @@ PATH = "/home/psireal42/study/quantum-contact-process-1D/results/"
 L = 10
 d = 2  # physical dimension
 # OMEGAS = np.linspace(0, 10, 10)
-OMEGAS = np.array([0.0])
+OMEGAS = np.array([2.0])
 
 # TN algorithm parameters
 # bond_dims = np.array([8, 16, 20])
