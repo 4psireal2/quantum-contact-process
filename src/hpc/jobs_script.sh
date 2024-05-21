@@ -19,7 +19,7 @@
 #SBATCH --cpus-per-task=24
 
 # memory per CPU in MB (see also --mem) 
-#SBATCH --mem-per-cpu=4096
+#SBATCH --mem-per-cpu=2048
 
 # runtime in HH:MM:SS format (DAYS-HH:MM:SS format)
 #SBATCH --time=3-00:00:00

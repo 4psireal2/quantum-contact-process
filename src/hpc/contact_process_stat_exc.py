@@ -52,13 +52,6 @@ def main():
     time2 = time.time()
     logger.info(f"Elapsed time: {time2 - time1} seconds")
 
-    np.savetxt(OUTPUT_PATH + f"eval_0_exc_L_{L}_D_{bond_dim}_O_{OMEGA}_{SLURM_ARRAY_JOB_ID}.txt",
-               eigenvalues[0],
-               delimiter=',')
-    np.savetxt(OUTPUT_PATH + f"eval_1_exc_L_{L}_D_{bond_dim}_O_{OMEGA}_{SLURM_ARRAY_JOB_ID}.txt",
-               eigenvalues[1],
-               delimiter=',')
-
     evp_residual = (lindblad_hermitian @ eigentensors[1] - eigenvalues[1] * eigentensors[1]).norm()**2
     logger.info(f"{eigenvalues=}")
     logger.info(f"Eigensolver error for first excited state: {evp_residual}")
@@ -66,15 +59,23 @@ def main():
     logger.info(f"First excited state energy per site: {eigenvalues[1]/L}")
     logger.info(f"Norm of first excited state: {eigentensors[1].norm()**2}")
 
+    np.savetxt(OUTPUT_PATH + f"eval_0_exc_L_{L}_D_{bond_dim}_O_{OMEGA}_{SLURM_ARRAY_JOB_ID}.txt",
+               np.array([eigenvalues[0]]),
+               fmt='%.6f')
+    np.savetxt(OUTPUT_PATH + f"eval_1_exc_L_{L}_D_{bond_dim}_O_{OMEGA}_{SLURM_ARRAY_JOB_ID}.txt",
+               np.array([eigenvalues[1]]),
+               fmt='%.6f')
+
+    logger.info(
+        f"expVal_1, eval_1_als, eval_1: {compute_expVal(mps, lindblad_hermitian)}, {eigenvalues[1]}, {eigentensors[1].transpose(conjugate=True) @ lindblad_hermitian @ eigentensors[1]}"
+    )
+
     mps = canonicalize_mps(eigentensors[1])
     mps_dag = mps.transpose(conjugate=True)
 
     # compute non-Hermitian part of mps
     non_hermit_mps = (1 / 2) * (mps - mps_dag)
     logger.info(f"The norm of the non-Hermitian part: {non_hermit_mps.norm()**2}")
-    logger.info(
-        f"expVal_1, eval_1_als, eval_1: {compute_expVal(mps, lindblad_hermitian)}, {eigenvalues[1]}, {mps_dag@lindblad_hermitian@mps}"
-    )
 
     # compute Hermitian part of mps
     hermit_mps = (1 / 2) * (mps + mps_dag)
@@ -85,7 +86,9 @@ def main():
     logger.info(f"Particle number/site: {particle_nums}")
     n_s = np.mean(particle_nums)
     logger.info(f"Mean Particle number: {n_s}")
-    np.savetxt(OUTPUT_PATH + f"n_s_exc_L_{L}_D_{bond_dim}_O_{OMEGA}_{SLURM_ARRAY_JOB_ID}.txt", n_s, delimiter=',')
+    np.savetxt(OUTPUT_PATH + f"n_s_exc_L_{L}_D_{bond_dim}_O_{OMEGA}_{SLURM_ARRAY_JOB_ID}.txt",
+               np.array([n_s]),
+               fmt='%.6f')
 
     if bond_dim == bond_dims[-1]:
         logger.info(f"{bond_dim=}")
@@ -93,15 +96,15 @@ def main():
         spectral_gaps = abs(eigenvalues[1] - eigenvalues[0])
         logger.info(f"{spectral_gaps=}")
         np.savetxt(OUTPUT_PATH + f"spectral_gaps_exc_L_{L}_D_{bond_dim}_O_{OMEGA}_{SLURM_ARRAY_JOB_ID}.txt",
-                   spectral_gaps,
-                   delimiter=',')
+                   np.array([spectral_gaps]),
+                   fmt='%.6f')
 
         logger.info("Compute purity of state for largest bond dimension")
         purities = compute_purity(mps)
         logger.info(f"Purity: {purities}")
         np.savetxt(OUTPUT_PATH + f"purities_exc_L_{L}_D_{bond_dim}_O_{OMEGA}_{SLURM_ARRAY_JOB_ID}.txt",
-                   purities,
-                   delimiter=',')
+                   np.array([purities]),
+                   fmt='%.6f')
 
         logger.info("Compute two-point correlation for largest bond dimension")
         correlations = np.zeros(L - 1)
@@ -110,7 +113,7 @@ def main():
         logger.info(f"{correlations=}")
         np.savetxt(OUTPUT_PATH + f"correlations_exc_L_{L}_D_{bond_dim}_O_{OMEGA}_{SLURM_ARRAY_JOB_ID}.txt",
                    correlations,
-                   delimiter=',')
+                   fmt='%.6f')
 
         logger.info("Compute density-density correlation for largest bond dimension")
         dens_dens_corr = np.zeros(L - 1)
@@ -119,14 +122,14 @@ def main():
         logger.info(f"{dens_dens_corr=}")
         np.savetxt(OUTPUT_PATH + f"dens_dens_corr_exc_L_{L}_D_{bond_dim}_O_{OMEGA}_{SLURM_ARRAY_JOB_ID}.txt",
                    dens_dens_corr,
-                   delimiter=',')
+                   fmt='%.6f')
 
         logger.info("Compute half-chain entanglement spectrum for largest bond dimension")
         entanglement_spectrum = compute_entanglement_spectrum(mps)
         logger.info(f"{entanglement_spectrum=}")
         np.savetxt(OUTPUT_PATH + f"entanglement_spectrum_exc_L_{L}_D_{bond_dim}_O_{OMEGA}_{SLURM_ARRAY_JOB_ID}.txt",
                    entanglement_spectrum,
-                   delimiter=',')
+                   fmt='%.6f')
 
         basis_0 = np.array([1, 0])
         dark_state = construct_basis_mps(L, basis=[np.outer(basis_0, basis_0)] * L)
