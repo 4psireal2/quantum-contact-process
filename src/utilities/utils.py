@@ -69,7 +69,7 @@ def compute_purity(mps: tt.TT) -> float:
     return np.trace(left_boundary @ right_boundary).item()
 
 
-def compute_site_expVal(mps: tt.TT, mpo: tt.TT) -> np.ndarray:
+def compute_site_expVal_mpo(mps: tt.TT, mpo: tt.TT) -> np.ndarray:
     """
     Compute Tr(ρ A_k) for each k
     """
@@ -95,6 +95,32 @@ def compute_site_expVal(mps: tt.TT, mpo: tt.TT) -> np.ndarray:
             raise ValueError("Complex expectation value is found.")
 
     return site_vals
+
+
+def compute_site_expVal_mps(mps: tt.TT, mpo: np.ndarray) -> np.ndarray:
+
+    site_vals = np.zeros(mps.order, dtype=float)
+    mps_dag = mps.transpose(conjugate=True)
+
+    np.ones((1, 1))
+    np.ones((1, 1))
+
+    for i in range(mps.order):
+
+        contraction = np.tensordot(mps_dag.cores[i], mpo, axes=(1, 0))
+        contraction = np.tensordot(contraction, mps.cores[i], axes=([0, 3, 1, 2], [0, 2, 1, 3]))
+        # left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1], [0, 2]))
+
+    # exp_val = np.trace(left_boundary @ right_boundary).item()
+    if contraction.item().imag < 1e-7:
+        site_vals[i] = contraction
+
+    # if exp_val.imag < 1e-7:
+    #     return exp_val.real
+    else:
+        raise ValueError("Complex expectation value is found.")
+
+    return np.mean(site_vals)
 
 
 def compute_expVal(mps: tt.TT, mpo: tt.TT) -> float:

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # job name, will show up in squeue output
-#SBATCH --job-name=cp-stat-exc
+#SBATCH --job-name=cp-stat
 
 # mail to which notifications will be sent 
 #SBATCH --mail-user=nguyed99@zedat.fu-berlin.de
@@ -16,13 +16,13 @@
 #SBATCH --ntasks=1
 
 # number of CPUs per task
-#SBATCH --cpus-per-task=24
+#SBATCH --cpus-per-task=26
 
 # memory per CPU in MB (see also --mem) 
-#SBATCH --mem-per-cpu=2048
+#SBATCH --mem-per-cpu=4096
 
 # runtime in HH:MM:SS format (DAYS-HH:MM:SS format)
-#SBATCH --time=3-00:00:00
+#SBATCH --time=6-00:00:00
 
 # file to which standard output will be written (%A --> jobID, %a --> arrayID)
 #SBATCH --output=/scratch/nguyed99/qcp-1d/logging/cp_stat_exc_%A_%a.out
@@ -31,7 +31,7 @@
 #SBATCH --error=/scratch/nguyed99/qcp-1d/logging/cp_stat_exc_%A_%a.err
 
 # job arrays
-#SBATCH --array=0-19
+#SBATCH --array=0-25
 
 # select partition
 #SBATCH --partition=main
@@ -41,7 +41,7 @@
 
 # simulation parameter
 L=50
-OMEGAS=(0.5 1.5 2.5 3.5 4.5 5.5 6.5 7.5 8.5 9.5)
+OMEGAS=(0.0 0.9 1.8 2.7 3.6 4.5 5.4 6.3 7.2 8.1 9.0 9.9 10.8)
 BOND_DIMS=(35 50)
 OMEGA_INDEX=$((SLURM_ARRAY_TASK_ID / 2))
 BOND_DIM_INDEX=$((SLURM_ARRAY_TASK_ID % 2))
@@ -72,4 +72,4 @@ source /scratch/nguyed99/tensor/bin/activate
 
 export PYTHONPATH=$PYTHONPATH:/scratch/nguyed99/qcp-1d
 echo "Output log" >> "$LOG_PATH/${timestamp}.log"
-python3 contact_process_stat_exc.py $OMEGA $BOND_DIM $SLURM_ARRAY_JOB_ID 2>&1 | awk -v task_id=$SLURM_ARRAY_TASK_ID '{print "array task " task_id, $0}' >> "$LOG_PATH/${timestamp}.log"
+python3 contact_process_stat.py $L $OMEGA $BOND_DIM $SLURM_ARRAY_JOB_ID 2>&1 | awk -v task_id=$SLURM_ARRAY_TASK_ID '{print "array task " task_id, $0}' >> "$LOG_PATH/${timestamp}.log"

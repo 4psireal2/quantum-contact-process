@@ -13,14 +13,16 @@
 - [] (*artist*) draw tensor network diagrams hehe
 
 ## TODO (simulations):
-- Finite system: check for ||Ax - \lambda x|| < eps -> smallest required ranks
-- Thermodynamic limits for critical exponents-> VUMPS?
+- Finite system: check for ||Ax - λx|| < ε -> smallest required ranks
 - OBSERVATION: convergence for E doesn't require large bond dimensions, but for other observables alr!
-- Negative values for site expectation value
-- Simulations for first excited state
-- Reproduce results from 2 Banuls' papers
-- Add TN diagrams to thesis
-- Open issues on TensorKit
+- Resources report:
+    - L=10, χ=25, time = 1.36 min (1 excited state search)
+    - L=10, χ=25, time = 0.59 h (1 excited state search)
+    - L=25, χ=25, time = 2.73 h (1 excited state search)
+    - L=25, χ=40, time = 31.9 h (1 excited state search)
+
+
+
 
 ## For discussions
 - DMRG for dissipative Ising chain: GS is not dark state
