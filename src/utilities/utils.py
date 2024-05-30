@@ -69,7 +69,7 @@ def compute_purity(mps: tt.TT) -> float:
     return np.trace(left_boundary @ right_boundary).item()
 
 
-def compute_site_expVal_mpo(mps: tt.TT, mpo: tt.TT) -> np.ndarray:
+def compute_site_expVal_mpo(mps: tt.TT, mpo) -> np.ndarray:
     """
     Compute Tr(ρ A_k) for each k
     """
@@ -77,17 +77,17 @@ def compute_site_expVal_mpo(mps: tt.TT, mpo: tt.TT) -> np.ndarray:
     site_vals = np.zeros(mps.order, dtype=float)
 
     for i in range(mps.order):
-        left_boundary = np.ones((1, 1))
-        right_boundary = np.ones((1, 1))
+        left_boundary = np.ones(1)
+        right_boundary = np.ones(1)
 
         for j in range(mps.order):
 
             if j == i:
-                contraction = np.tensordot(mps.cores[j], mpo.cores[0], axes=([1, 2], [2, 1]))
+                contraction = np.tensordot(mps.cores[j], mpo, axes=([1, 2], [1, 0]))
             else:
-                contraction = np.tensordot(mps.cores[j], np.eye(2).reshape(1, 2, 2, 1), axes=([1, 2], [2, 1]))
+                contraction = np.tensordot(mps.cores[j], np.eye(2), axes=([1, 2], [1, 0]))
 
-            left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1], [0, 2]))
+            left_boundary = np.tensordot(left_boundary, contraction, axes=([0], [0]))
 
         if (left_boundary @ right_boundary).item().imag < 1e-12:
             site_vals[i] = (left_boundary @ right_boundary).item().real
@@ -107,20 +107,15 @@ def compute_site_expVal_mps(mps: tt.TT, mpo: np.ndarray) -> np.ndarray:
 
     for i in range(mps.order):
 
-        contraction = np.tensordot(mps_dag.cores[i], mpo, axes=(1, 0))
+        contraction = np.tensordot(mps_dag.cores[i], mpo, axes=([1], [1]))
         contraction = np.tensordot(contraction, mps.cores[i], axes=([0, 3, 1, 2], [0, 2, 1, 3]))
-        # left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1], [0, 2]))
 
-    # exp_val = np.trace(left_boundary @ right_boundary).item()
     if contraction.item().imag < 1e-7:
         site_vals[i] = contraction
-
-    # if exp_val.imag < 1e-7:
-    #     return exp_val.real
     else:
         raise ValueError("Complex expectation value is found.")
 
-    return np.mean(site_vals)
+    return site_vals
 
 
 def compute_expVal(mps: tt.TT, mpo: tt.TT) -> float:
@@ -262,10 +257,9 @@ def compute_overlap(mps_1: tt.TT, mps_2: tt.TT) -> float:
     left_boundary = np.ones((1, 1))
     right_boundary = np.ones((1, 1))
 
-    mps_2_dag = mps_2.transpose(conjugate=True)
+    mps_1_dag = mps_1.transpose(conjugate=True)
     for i in range(mps_1.order):
-
-        contraction = np.tensordot(mps_1.cores[i], mps_2_dag.cores[i], axes=([1, 2], [1, 2]))
+        contraction = np.tensordot(mps_1_dag.cores[i], mps_2.cores[i], axes=([1, 2], [1, 2]))
         left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1], [0, 2]))
 
     return np.trace(left_boundary @ right_boundary).item()

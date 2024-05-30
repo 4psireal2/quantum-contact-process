@@ -39,14 +39,15 @@ class UtilityFunctions(unittest.TestCase):
         assert np.allclose(b, np.eye(BOND_DIM))
 
         # check norm
-        norm = np.tensordot(mps.cores[ortho_center], mps.cores[ortho_center], axes=([0, 1, 2, 3], [0, 1, 2, 3]))
-        assert np.isclose(norm, mps.norm()**2)
+        overlap = np.tensordot(mps_dag.cores[ortho_center], mps.cores[ortho_center], axes=([0, 1, 2, 3], [0, 1, 2, 3]))
+        assert np.isclose(overlap, mps.norm()**2)
 
         # check orthonormalization
         mps = utils.orthonormalize_mps(mps, ortho_center)
-        norm = np.tensordot(mps.cores[ortho_center], mps.cores[ortho_center], axes=([0, 1, 2, 3], [0, 1, 2, 3]))
-        assert np.isclose(norm, mps.norm()**2)
-        assert np.isclose(norm, 1.0)
+        mps_dag = mps.transpose(conjugate=True)
+        overlap = np.tensordot(mps_dag.cores[ortho_center], mps.cores[ortho_center], axes=([0, 1, 2, 3], [0, 1, 2, 3]))
+        assert np.isclose(overlap, mps.norm()**2)
+        assert np.isclose(overlap, 1.0)
 
     def test_num_op(self):
         mps_tests = [
@@ -56,14 +57,10 @@ class UtilityFunctions(unittest.TestCase):
             utils.construct_basis_mps(L, basis=[np.outer(basis_0, basis_0)] * L)
         ]
         number_op = np.array([[0, 0], [0, 1]])
-        number_op.reshape((1, 2, 2, 1))
-        number_mpo = [None]
-        number_mpo = tt.TT(number_op)
-
         # expected arrays of single site expectation values
         site_vals = [np.ones(L), np.zeros(L), np.zeros(L), np.zeros(L)]
         for k, mps in enumerate(mps_tests):
-            site_expVal = utils.compute_site_expVal(mps, number_mpo)
+            site_expVal = utils.compute_site_expVal_mpo(mps, number_op)
             assert np.array_equal(site_expVal, site_vals[k])
 
     def test_purity(self):
