@@ -150,54 +150,54 @@ def compute_correlation(mps: tt.TT, mpo: tt.TT, r0: int, r1: int) -> float:
     - r0, r1: first, second index of sites on the TT 
     """
 
-    left_boundary = np.ones((1, 1))
-    right_boundary = np.ones((1, 1))
+    left_boundary = np.ones(1)
+    right_boundary = np.ones(1)
 
     # compute <O_{r0} . O_{r1}>
     for j in range(mps.order):
         if j != r0 and j != r1:
-            contraction = np.tensordot(mps.cores[j], np.eye(2).reshape(1, 2, 2, 1), axes=([1, 2], [2, 1]))
+            contraction = np.tensordot(mps.cores[j], np.eye(2), axes=([1, 2], [1, 0]))
         else:
-            contraction = np.tensordot(mps.cores[j], mpo.cores[0], axes=([1, 2], [2, 1]))
+            contraction = np.tensordot(mps.cores[j], mpo, axes=([1, 2], [1, 0]))
 
-        left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1], [0, 2]))
+        left_boundary = np.tensordot(left_boundary, contraction, axes=([0], [0]))
 
     mean_product = (left_boundary @ right_boundary).item()
 
     # compute <O_{r0}><O_{r1}>
     # compute <O_{r0}>
 
-    left_boundary = np.ones((1, 1))
-    right_boundary = np.ones((1, 1))
+    left_boundary = np.ones(1)
+    right_boundary = np.ones(1)
 
     for j in range(mps.order):
         if j == r0:
-            contraction = np.tensordot(mps.cores[j], mpo.cores[0], axes=([1, 2], [2, 1]))
+            contraction = np.tensordot(mps.cores[j], mpo, axes=([1, 2], [1, 0]))
         else:
-            contraction = np.tensordot(mps.cores[j], np.eye(2).reshape(1, 2, 2, 1), axes=([1, 2], [2, 1]))
+            contraction = np.tensordot(mps.cores[j], np.eye(2), axes=([1, 2], [1, 0]))
 
-        left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1], [0, 2]))
+        left_boundary = np.tensordot(left_boundary, contraction, axes=([0], [0]))
 
     product_mean = (left_boundary @ right_boundary).item()
 
     # compute <O_{r1}>
-    left_boundary = np.ones((1, 1))
-    right_boundary = np.ones((1, 1))
+    left_boundary = np.ones(1)
+    right_boundary = np.ones(1)
 
     for j in range(mps.order):
         if j == r1:
-            contraction = np.tensordot(mps.cores[j], mpo.cores[0], axes=([1, 2], [2, 1]))
+            contraction = np.tensordot(mps.cores[j], mpo, axes=([1, 2], [1, 0]))
         else:
-            contraction = np.tensordot(mps.cores[j], np.eye(2).reshape(1, 2, 2, 1), axes=([1, 2], [2, 1]))
+            contraction = np.tensordot(mps.cores[j], np.eye(2), axes=([1, 2], [1, 0]))
 
-        left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1], [0, 2]))
+        left_boundary = np.tensordot(left_boundary, contraction, axes=([0], [0]))
 
     product_mean *= (left_boundary @ right_boundary).item()
 
     return mean_product - product_mean
 
 
-def compute_dens_dens_corr(mps: tt.TT, mpo: tt.TT, r: int) -> float:
+def compute_dens_dens_corr(mps: tt.TT, mpo, r: int) -> float:
     """
     Compute  <O_{r} . O_{0}> - <O_{0}>^2 with trace
 
@@ -206,31 +206,31 @@ def compute_dens_dens_corr(mps: tt.TT, mpo: tt.TT, r: int) -> float:
     - mpo: 1 core with shape (2,2,2,2)
     """
 
-    left_boundary = np.ones((1, 1))
-    right_boundary = np.ones((1, 1))
+    left_boundary = np.ones(1)
+    right_boundary = np.ones(1)
 
     # compute <O_{0} . O_{r}>
     for j in range(mps.order):
         if j != 0 and j != r:
-            contraction = np.tensordot(mps.cores[j], np.eye(2).reshape(1, 2, 2, 1), axes=([1, 2], [2, 1]))
+            contraction = np.tensordot(mps.cores[j], np.eye(2), axes=([1, 2], [1, 0]))
         else:
-            contraction = np.tensordot(mps.cores[j], mpo.cores[0], axes=([1, 2], [2, 1]))
+            contraction = np.tensordot(mps.cores[j], mpo, axes=([1, 2], [1, 0]))
 
-        left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1], [0, 2]))
+        left_boundary = np.tensordot(left_boundary, contraction, axes=([0], [0]))
 
     mean_product = (left_boundary @ right_boundary).item()
 
     # compute <O_{0}>²
-    left_boundary = np.ones((1, 1))
-    right_boundary = np.ones((1, 1))
+    left_boundary = np.ones(1)
+    right_boundary = np.ones(1)
 
     for j in range(mps.order):
         if j == 0:
-            contraction = np.tensordot(mps.cores[j], mpo.cores[0], axes=([1, 2], [2, 1]))
+            contraction = np.tensordot(mps.cores[j], mpo, axes=([1, 2], [1, 0]))
         else:
-            contraction = np.tensordot(mps.cores[j], np.eye(2).reshape(1, 2, 2, 1), axes=([1, 2], [2, 1]))
+            contraction = np.tensordot(mps.cores[j], np.eye(2), axes=([1, 2], [1, 0]))
 
-        left_boundary = np.tensordot(left_boundary, contraction, axes=([0, 1], [0, 2]))
+        left_boundary = np.tensordot(left_boundary, contraction, axes=([0], [0]))
 
     product_mean = ((left_boundary @ right_boundary).item())**2
     return mean_product - product_mean

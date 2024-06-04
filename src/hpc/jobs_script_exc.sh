@@ -19,10 +19,10 @@
 #SBATCH --cpus-per-task=26
 
 # memory per CPU in MB (see also --mem) 
-#SBATCH --mem-per-cpu=4096
+#SBATCH --mem-per-cpu=2048
 
 # runtime in HH:MM:SS format (DAYS-HH:MM:SS format)
-#SBATCH --time=6-00:00:00
+#SBATCH --time=3-00:00:00
 
 # file to which standard output will be written (%A --> jobID, %a --> arrayID)
 #SBATCH --output=/scratch/nguyed99/qcp-1d/logging/cp_stat_exc_%A_%a.out
@@ -40,9 +40,9 @@
 # SBATCH --reservation=bqa
 
 # simulation parameter
-L=50
+L=10
 OMEGAS=(0.0 0.9 1.8 2.7 3.6 4.5 5.4 6.3 7.2 8.1 9.0 9.9 10.8)
-BOND_DIMS=(35 50)
+BOND_DIMS=(10 25)
 OMEGA_INDEX=$((SLURM_ARRAY_TASK_ID / 2))
 BOND_DIM_INDEX=$((SLURM_ARRAY_TASK_ID % 2))
 OMEGA=${OMEGAS[OMEGA_INDEX]}
@@ -72,4 +72,4 @@ source /scratch/nguyed99/tensor/bin/activate
 
 export PYTHONPATH=$PYTHONPATH:/scratch/nguyed99/qcp-1d
 echo "Output log" >> "$LOG_PATH/${timestamp}.log"
-python3 contact_process_stat.py $L $OMEGA $BOND_DIM $SLURM_ARRAY_JOB_ID 2>&1 | awk -v task_id=$SLURM_ARRAY_TASK_ID '{print "array task " task_id, $0}' >> "$LOG_PATH/${timestamp}.log"
+python3 contact_process_exc.py $L $OMEGA $BOND_DIM $SLURM_ARRAY_JOB_ID 2>&1 | awk -v task_id=$SLURM_ARRAY_TASK_ID '{print "array task " task_id, $0}' >> "$LOG_PATH/${timestamp}.log"
